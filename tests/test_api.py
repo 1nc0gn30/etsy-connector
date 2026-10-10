@@ -45,7 +45,7 @@ class TestEtsyApi(unittest.TestCase):
             data = json.loads(resp.read().decode())
             self.assertEqual(data["status"], "healthy")
             self.assertEqual(data["service"], "etsy-connector")
-            self.assertEqual(data["port"], 8107)
+            self.assertEqual(data["port"], 8108)
 
     def test_stats_endpoint(self):
         url = f"http://127.0.0.1:{TEST_PORT}/api/stats"
