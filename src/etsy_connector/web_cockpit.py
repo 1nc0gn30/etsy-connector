@@ -215,7 +215,33 @@ class EtsyCockpitHandler(BaseHTTPRequestHandler):
             self._send_json(HTTPStatus.OK, payload)
             return
 
-        # 5. Save Credentials
+        # 5. Create Draft Listing
+        if path == "/api/create-draft":
+            title = data.get("title", "New Etsy Listing")
+            desc = data.get("description", "")
+            price = float(data.get("price", 34.99))
+            quantity = int(data.get("quantity", 999))
+            tags = data.get("tags", [])
+            taxonomy_id = int(data.get("taxonomy_id", 1099))
+            who_made = data.get("who_made", "collective")
+            when_made = data.get("when_made", "2020_2026")
+            is_supply = bool(data.get("is_supply", False))
+            res = self.client.create_draft_listing(
+                title=title,
+                description=desc,
+                price=price,
+                quantity=quantity,
+                tags=tags,
+                taxonomy_id=taxonomy_id,
+                who_made=who_made,
+                when_made=when_made,
+                is_supply=is_supply,
+            )
+            self._notify_flight_recorder("ETSY_DRAFT_CREATED", f"Draft listing created: {title[:30]}")
+            self._send_json(HTTPStatus.OK, res)
+            return
+
+        # 6. Save Credentials
         if path == "/api/credentials":
             api_key = data.get("api_key", "")
             access_token = data.get("access_token", "")

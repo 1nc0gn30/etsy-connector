@@ -98,6 +98,23 @@ class TestEtsyApi(unittest.TestCase):
             data = json.loads(resp.read().decode())
             self.assertTrue(data["net_profit"] > 17.0)
 
+    def test_post_create_draft_endpoint(self):
+        url = f"http://127.0.0.1:{TEST_PORT}/api/create-draft"
+        payload = json.dumps({
+            "title": "Cosmic Sacred Geometry Fleece Blanket",
+            "description": "Ultra plush archival print throw blanket.",
+            "price": 42.50,
+            "quantity": 50,
+            "tags": ["sacred geometry", "fleece blanket", "cosmic decor"]
+        }).encode()
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode())
+            self.assertEqual(data["status"], "draft")
+            self.assertIn("listing_id", data)
+            self.assertEqual(data["title"], "Cosmic Sacred Geometry Fleece Blanket")
+
 
 if __name__ == "__main__":
     unittest.main()
