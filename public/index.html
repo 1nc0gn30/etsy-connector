@@ -43,7 +43,8 @@
           "@type": "Offer",
           "price": "19.00",
           "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock"
+          "availability": "https://schema.org/InStock",
+          "url": "https://buy.stripe.com/7sI7sA8hM2X8eFG8ww"
         },
         "creator": {
           "@type": "Person",
@@ -514,8 +515,8 @@
         <p>Unlimited Etsy SEO Audits, 1-Click Printify POD Sync, and Instant Antigravity MCP Access.</p>
       </div>
       <div class="banner-actions">
-        <a href="https://buy.stripe.com/test_00g000000000000000" class="btn btn-gold" target="_blank" rel="noopener">Pay with Stripe ($19)</a>
-        <button class="btn btn-solana" id="solanaPayBtn">Pay with Solana</button>
+        <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" class="btn btn-gold" target="_blank" rel="noopener">Pay with Stripe ($19)</a>
+        <a href="https://depay.com/pay?integration=428790dd-7ad1-407c-8ecf-c048c77a4cb8&receiver=GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK&amount=19" class="btn btn-solana" id="solanaPayBtn" target="_blank" rel="noopener">Pay with Solana ($19)</a>
       </div>
     </div>
 
@@ -657,7 +658,11 @@
             <div class="paywall-overlay" id="podOverlay">
               <h4>🔒 Pro Export Locked</h4>
               <p>Unlock 1-click JSON payloads for direct Printify webhooks and automated Etsy listing creation.</p>
-              <button class="btn btn-gold" onclick="unlockPro()">Unlock Lifetime Access ($19)</button>
+              <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+                <a href="https://buy.stripe.com/7sI7sA8hM2X8eFG8ww" class="btn btn-gold" target="_blank" rel="noopener">⚡ Stripe Pay $19</a>
+                <a href="https://depay.com/pay?integration=428790dd-7ad1-407c-8ecf-c048c77a4cb8&receiver=GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK&amount=19" class="btn btn-solana" target="_blank" rel="noopener">◎ Solana $19</a>
+                <button onclick="unlockPro()" style="padding: 6px 12px; font-size: 0.8rem; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #FFF; border-radius: 6px; cursor: pointer;">Have Key?</button>
+              </div>
             </div>
             <pre class="blurred-content" id="podJsonCode" style="font-family: var(--mono); font-size: 0.75rem; color: #38BDF8; background: #000; padding: 16px; border-radius: 8px;">
 {
@@ -834,10 +839,6 @@
     }
 
     document.getElementById('unlockBtn').addEventListener('click', unlockPro);
-    document.getElementById('solanaPayBtn').addEventListener('click', () => {
-      alert('Solana Receiver: GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK\nAmount: 0.12 SOL ($19)');
-      unlockPro();
-    });
 
     // Init
     runAudit();
