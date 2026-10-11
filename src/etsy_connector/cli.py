@@ -43,7 +43,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     profit_p.add_argument("--retail", type=float, required=True, help="Retail price in USD")
     profit_p.add_argument("--pod", type=float, required=True, help="POD production base cost in USD")
     profit_p.add_argument("--shipping", type=float, default=0.0, help="Shipping charged to customer")
-    profit_p.add_argument("--ads", action="store_true", help="Include 15% Etsy offsite ads fee")
+    profit_p.add_argument("--ads", action="store_true", help="Include 15%% Etsy offsite ads fee")
     profit_p.add_argument("--json", action="store_true", help="Output profit report as JSON")
 
     # Command: search
