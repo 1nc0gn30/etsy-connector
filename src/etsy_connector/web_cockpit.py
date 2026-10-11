@@ -26,6 +26,24 @@ from .pod_bridge import generate_printify_product_payload, get_available_bluepri
 from .seo_engine import audit_listing, calculate_profit
 from .taxonomy import find_taxonomy, get_taxonomy_categories
 
+
+def _default_bind_host() -> str:
+    """Bind address: localhost unless explicitly opted in via $ZOTH_BIND_HOST or
+    $HOST (IP literal only; zsh sets HOST to the hostname) or --host."""
+    import ipaddress, os
+    for var in ("ZOTH_BIND_HOST", "HOST"):
+        val = os.environ.get(var, "").strip()
+        if val == "localhost":
+            return "127.0.0.1"
+        if val:
+            try:
+                ipaddress.ip_address(val)
+                return val
+            except ValueError:
+                pass
+    return "127.0.0.1"
+
+
 FLIGHT_RECORDER_URL = "http://127.0.0.1:8104/api/ingest"
 NEURO_MEMORY_URL = "http://127.0.0.1:8094/api/memories"
 
@@ -278,7 +296,7 @@ class EtsyCockpitHandler(BaseHTTPRequestHandler):
         threading.Thread(target=_send, daemon=True).start()
 
 
-def run_server(port: int = 8108, public_dir: Optional[Path] = None) -> None:
+def run_server(port: int = 8108, public_dir: Optional[Path] = None, host: Optional[str] = None) -> None:
     """Run Etsy Connector REST API and Web Cockpit."""
     p_dir = public_dir or (Path(__file__).resolve().parent.parent.parent / "public")
     EtsyCockpitHandler.public_dir = p_dir
@@ -291,8 +309,9 @@ def run_server(port: int = 8108, public_dir: Optional[Path] = None) -> None:
         "searches_executed": 0,
     }
 
-    server = ThreadingHTTPServer(("0.0.0.0", port), EtsyCockpitHandler)
-    sys.stderr.write(f"[etsy-connector] Web Cockpit active on http://127.0.0.1:{port}\n")
+    host = host or _default_bind_host()
+    server = ThreadingHTTPServer((host, port), EtsyCockpitHandler)
+    sys.stderr.write(f"[etsy-connector] Web Cockpit active on http://{host}:{port}\n")
     sys.stderr.flush()
     try:
         server.serve_forever()

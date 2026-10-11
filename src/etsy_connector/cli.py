@@ -30,6 +30,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Command: serve
     serve_p = subparsers.add_parser("serve", help="Run REST API and Glassmorphic Web Cockpit")
     serve_p.add_argument("--port", type=int, default=8108, help="Port to bind server (default: 8108)")
+    serve_p.add_argument("--host", default=None, help="Host interface (default: 127.0.0.1 or $ZOTH_BIND_HOST; use 0.0.0.0 only on trusted networks)")
 
     # Command: audit
     audit_p = subparsers.add_parser("audit", help="Audit Etsy listing title and 13 tags for SEO ranking")
@@ -61,7 +62,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     elif cmd == "serve":
-        run_server(port=args.port)
+        run_server(port=args.port, host=args.host)
         return 0
 
     elif cmd == "audit":

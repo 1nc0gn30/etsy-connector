@@ -59,3 +59,10 @@ Add to `~/.gemini/config/mcp_config.json`:
 ## 📜 Attribution & License
 Engineered by **Neal Frazier Tech** ([@1nc0gn30](https://github.com/1nc0gn30)) • [NullAI Platform](https://nullai.tech)
 MIT License.
+
+## Network exposure
+
+The server binds to `127.0.0.1` by default. To reach it from other devices,
+opt in explicitly with `--host 0.0.0.0` (or set `ZOTH_BIND_HOST=0.0.0.0`; an IP
+in `HOST` is also honoured, a plain hostname is ignored) and only on a trusted
+network.
