@@ -59,18 +59,22 @@ class EtsyClient:
         self.access_token = access_token.strip()
         self.shop_id = shop_id.strip()
         self.simulate = not (self.api_key and self.access_token)
-        CONFIG_PATH.write_text(
-            json.dumps(
-                {
-                    "api_key": self.api_key,
-                    "access_token": self.access_token,
-                    "shop_id": self.shop_id,
-                    "updated_at": time.time(),
-                },
-                indent=2,
-            ),
-            encoding="utf-8",
+        data = json.dumps(
+            {
+                "api_key": self.api_key,
+                "access_token": self.access_token,
+                "shop_id": self.shop_id,
+                "updated_at": time.time(),
+            },
+            indent=2,
         )
+        # Owner-only (0600) and atomic: credentials must not be world-readable.
+        tmp = CONFIG_PATH.with_name(CONFIG_PATH.name + ".tmp")
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(data)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, CONFIG_PATH)
 
     def is_configured(self) -> bool:
         """Return True if live credentials are configured."""
@@ -107,12 +111,15 @@ class EtsyClient:
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8", errors="ignore")
-            # Fallback to simulation if auth failed
-            if e.code in (401, 403):
+            # Reads may fall back to clearly-flagged simulated data; writes must
+            # never report a fake success (e.g. a made-up listing_id).
+            if e.code in (401, 403) and method == "GET":
                 return self._simulate_response(endpoint, method, params, payload, note=f"Live API error ({e.code}); fell back to simulation.")
-            raise RuntimeError(f"Etsy API HTTP {e.code}: {err_body}")
+            raise RuntimeError(f"Etsy API HTTP {e.code}: {err_body[:500]}")
         except Exception as e:
-            return self._simulate_response(endpoint, method, params, payload, note=f"Network error ({e}); fell back to simulation.")
+            if method == "GET":
+                return self._simulate_response(endpoint, method, params, payload, note=f"Network error ({type(e).__name__}); fell back to simulation.")
+            raise RuntimeError(f"Etsy API request failed ({type(e).__name__}); nothing was created.") from None
 
     def _simulate_response(
         self,
@@ -242,8 +249,13 @@ class EtsyClient:
         who_made: str = "collective",
         when_made: str = "2020_2026",
         is_supply: bool = False,
+        confirm: bool = False,
     ) -> Dict[str, Any]:
-        """Create a draft listing on Etsy."""
+        """Create a draft listing on Etsy.
+
+        With live credentials this writes to the real shop, so it is a dry run
+        (returns the payload, sends nothing) unless ``confirm=True`` or
+        ``ETSY_ALLOW_LIVE_WRITES=1``."""
         target_shop = self.shop_id or "me"
         payload = {
             "quantity": quantity,
@@ -257,6 +269,15 @@ class EtsyClient:
             "tags": (tags or [])[:13],
             "state": "draft",
         }
+        if not self.simulate and not (confirm or os.environ.get("ETSY_ALLOW_LIVE_WRITES") == "1"):
+            return {
+                "dry_run": True,
+                "simulation": False,
+                "status": "not_sent",
+                "message": "Live credentials present: pass confirm=true (or set ETSY_ALLOW_LIVE_WRITES=1) to create this draft on Etsy.",
+                "endpoint": f"POST /shops/{target_shop}/listings",
+                "payload": payload,
+            }
         return self._request(f"/shops/{target_shop}/listings", method="POST", payload=payload)
 
     def upload_listing_image(

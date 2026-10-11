@@ -66,3 +66,10 @@ The server binds to `127.0.0.1` by default. To reach it from other devices,
 opt in explicitly with `--host 0.0.0.0` (or set `ZOTH_BIND_HOST=0.0.0.0`; an IP
 in `HOST` is also honoured, a plain hostname is ignored) and only on a trusted
 network.
+
+## Safety
+
+- The browser API only accepts cross-origin requests from `localhost` / `127.0.0.1` pages. POSTs from any other website get `403`, and CORS echoes only local origins (never `*`), so a site you visit can't drive or read this local server. CLI and agent clients (no `Origin` header) are unaffected.
+- Credentials (`ETSY_API_KEY`, `ETSY_ACCESS_TOKEN`, or the cockpit form) are stored in `~/.etsy_connector_config.json` with owner-only `0600` permissions and are never returned by any endpoint.
+- **Live writes are dry runs by default.** With live credentials, `create-draft` (HTTP, MCP `etsy_create_draft_listing`) returns the payload it *would* send. Pass `"confirm": true`, or set `ETSY_ALLOW_LIVE_WRITES=1`, to really create the draft.
+- A failed live write (auth or network error) raises an error. It never falls back to a simulated "success" with a made-up `listing_id`. Reads may fall back to simulated data, flagged with `simulation: true` and a note.

@@ -124,7 +124,7 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
     },
     {
         "name": "etsy_create_draft_listing",
-        "description": "Create a new draft listing on Etsy with complete title, description, price, 13 tags, and taxonomy ID.",
+        "description": "Create a new draft listing on Etsy with complete title, description, price, 13 tags, and taxonomy ID. With live credentials this is a dry run unless confirm=true.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -285,6 +285,7 @@ class EtsyMcpServer:
                 quantity=qty,
                 tags=tags,
                 taxonomy_id=tax_id,
+                confirm=bool(arguments.get("confirm", False)),
             )
 
         elif name == "etsy_upload_listing_image":
