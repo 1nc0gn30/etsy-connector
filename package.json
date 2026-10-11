@@ -1,0 +1,11 @@
+{
+  "name": "etsy-connector",
+  "version": "2.5.0",
+  "description": "Etsy Open API v3 & Antigravity MCP bridge with 13-tag SEO auditor, fee/profit calculator, and Printify payload generator.",
+  "author": "Neal Frazier Tech (@1nc0gn30)",
+  "license": "MIT",
+  "scripts": {
+    "serve": "python3 -m http.server 8108 --directory public",
+    "test": "python3 -m unittest discover tests"
+  }
+}
