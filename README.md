@@ -1,5 +1,9 @@
 # 🌸 Etsy Connector for Antigravity & Sovereign AI Agents
 
+> ⚡ **Live Web Application**: [https://etsy-connector.netlify.app](https://etsy-connector.netlify.app)  
+> 💳 **Unlock Pro Lifetime License ($19 One-Time, $0/mo)**: **[Instant Pro Unlock via Stripe](https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L)** *(Use promo code `FOUNDER25` for 25% off)*  
+> 🏆 **All-Access Sovereign Pro Bundle (All 44 Tools — $49 Lifetime)**: **[Get All 44 Studios via Stripe](https://buy.stripe.com/eVq14m5k16hW4Le0xWfw40M)**
+
 [![Audit](https://img.shields.io/badge/guardrail-100%25%20passed-emerald)](https://etsy.nullai.tech)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
 [![Python](https://img.shields.io/badge/python-3.10%2B-gold)](https://python.org)
