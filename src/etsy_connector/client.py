@@ -245,13 +245,14 @@ class EtsyClient:
         price: float,
         quantity: int = 999,
         tags: Optional[List[str]] = None,
-        taxonomy_id: int = 1099,
-        who_made: str = "collective",
+        taxonomy_id: int = 2078,
+        who_made: str = "i_did",
         when_made: str = "2020_2026",
         is_supply: bool = False,
+        listing_type: str = "download",
         confirm: bool = False,
     ) -> Dict[str, Any]:
-        """Create a draft listing on Etsy.
+        """Create a draft listing on Etsy (defaults to type='download' for instant digital goods).
 
         With live credentials this writes to the real shop, so it is a dry run
         (returns the payload, sends nothing) unless ``confirm=True`` or
@@ -266,6 +267,7 @@ class EtsyClient:
             "when_made": when_made,
             "taxonomy_id": taxonomy_id,
             "is_supply": is_supply,
+            "type": listing_type,
             "tags": (tags or [])[:13],
             "state": "draft",
         }
@@ -280,11 +282,89 @@ class EtsyClient:
             }
         return self._request(f"/shops/{target_shop}/listings", method="POST", payload=payload)
 
+    def update_shop(
+        self,
+        title: Optional[str] = None,
+        announcement: Optional[str] = None,
+        sale_message: Optional[str] = None,
+        digital_sale_message: Optional[str] = None,
+        confirm: bool = False,
+    ) -> Dict[str, Any]:
+        """Update Etsy shop metadata via PUT /v3/application/shops/{shop_id}."""
+        target_shop = self.shop_id or "me"
+        payload: Dict[str, Any] = {}
+        if title is not None:
+            payload["title"] = title
+        if announcement is not None:
+            payload["announcement"] = announcement
+        if sale_message is not None:
+            payload["sale_message"] = sale_message
+        if digital_sale_message is not None:
+            payload["digital_sale_message"] = digital_sale_message
+
+        if self.simulate or not self.is_configured():
+            return {
+                "simulation": True,
+                "status": "updated",
+                "shop_id": target_shop,
+                "updated_fields": payload,
+                "note": "Simulated shop profile update (configure live API key + OAuth token to push live).",
+            }
+
+        if not (confirm or os.environ.get("ETSY_ALLOW_LIVE_WRITES") == "1"):
+            return {
+                "dry_run": True,
+                "status": "not_sent",
+                "endpoint": f"PUT /shops/{target_shop}",
+                "payload": payload,
+            }
+        return self._request(f"/shops/{target_shop}", method="PUT", payload=payload)
+
+    def _multipart_upload(
+        self,
+        endpoint: str,
+        file_field: str,
+        file_path: str,
+        mime_type: str,
+        extra_fields: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        """Perform standard-library multipart/form-data upload to Etsy Open API v3."""
+        boundary = f"----AntigravityEtsyBoundary{uuid.uuid4().hex}"
+        body = bytearray()
+        for k, v in (extra_fields or {}).items():
+            body.extend(f"--{boundary}\r\n".encode("utf-8"))
+            body.extend(f'Content-Disposition: form-data; name="{k}"\r\n\r\n'.encode("utf-8"))
+            body.extend(f"{v}\r\n".encode("utf-8"))
+
+        filename = os.path.basename(file_path)
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+
+        body.extend(f"--{boundary}\r\n".encode("utf-8"))
+        body.extend(
+            f'Content-Disposition: form-data; name="{file_field}"; filename="{filename}"\r\n'.encode("utf-8")
+        )
+        body.extend(f"Content-Type: {mime_type}\r\n\r\n".encode("utf-8"))
+        body.extend(file_bytes)
+        body.extend(f"\r\n--{boundary}--\r\n".encode("utf-8"))
+
+        url = f"{self.base_url}{endpoint}"
+        headers = {
+            "x-api-key": self.api_key,
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "User-Agent": "AntigravityEtsyConnector/0.1.0",
+        }
+        req = urllib.request.Request(url, data=bytes(body), headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=30.0) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
     def upload_listing_image(
         self,
         listing_id: str,
         image_path: str,
         rank: int = 1,
+        alt_text: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Upload product mockup or design image to Etsy listing."""
         if self.simulate or not self.is_configured():
@@ -298,8 +378,143 @@ class EtsyClient:
                 "url_fullxfull": f"https://i.etsystatic.com/simulated/{listing_id}_fullxfull.jpg",
             }
 
-        # Live multipart upload
         target_shop = self.shop_id or "me"
         endpoint = f"/shops/{target_shop}/listings/{listing_id}/images"
-        # Return structured instruction or handle live multipart
-        return {"status": "ready", "endpoint": endpoint, "image_path": image_path}
+        fields = {"rank": str(rank)}
+        if alt_text:
+            fields["alt_text"] = alt_text[:250]
+        return self._multipart_upload(endpoint, "image", image_path, "image/png", fields)
+
+    def upload_listing_file(
+        self,
+        listing_id: str,
+        file_path: str,
+        name: Optional[str] = None,
+        rank: int = 1,
+    ) -> Dict[str, Any]:
+        """Upload instant digital download file (PDF, ZIP, PNG) to an Etsy listing."""
+        filename = name or os.path.basename(file_path)
+        if self.simulate or not self.is_configured():
+            return {
+                "simulation": True,
+                "status": "uploaded",
+                "listing_id": listing_id,
+                "listing_file_id": int(time.time() % 1000000),
+                "filename": filename,
+                "rank": rank,
+                "note": "Simulated digital download attachment uploaded.",
+            }
+
+        target_shop = self.shop_id or "me"
+        endpoint = f"/shops/{target_shop}/listings/{listing_id}/files"
+        fields = {"name": filename, "rank": str(rank)}
+        return self._multipart_upload(endpoint, "file", file_path, "application/octet-stream", fields)
+
+    @staticmethod
+    def generate_oauth_pkce(
+        api_key: str,
+        redirect_uri: str = "https://metadigitalgoods.nealfrazier.tech/oauth/callback/",
+        scopes: str = "listings_r listings_w shops_r shops_w transactions_r",
+    ) -> Dict[str, str]:
+        """Generate OAuth 2.0 PKCE verifier, challenge, and authorization URL for Etsy API v3."""
+        import base64
+        import hashlib
+        import secrets
+
+        client_id = api_key.split(":")[0].strip()
+        verifier = secrets.token_urlsafe(32)
+        digest = hashlib.sha256(verifier.encode("ascii")).digest()
+        challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+        state = secrets.token_hex(8)
+
+        params = urllib.parse.urlencode(
+            {
+                "response_type": "code",
+                "redirect_uri": redirect_uri,
+                "scope": scopes,
+                "client_id": client_id,
+                "state": state,
+                "code_challenge": challenge,
+                "code_challenge_method": "S256",
+            }
+        )
+        result = {
+            "auth_url": f"https://www.etsy.com/oauth/connect?{params}",
+            "code_verifier": verifier,
+            "code_challenge": challenge,
+            "state": state,
+            "redirect_uri": redirect_uri,
+            "client_id": client_id,
+        }
+        # Persist verifier & api_key so token exchange is 1-step
+        existing = {}
+        if CONFIG_PATH.exists():
+            try:
+                existing = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+            except Exception:
+                existing = {}
+        existing.update(
+            {
+                "api_key": api_key.strip(),
+                "client_id": client_id,
+                "code_verifier": verifier,
+                "redirect_uri": redirect_uri,
+                "state": state,
+                "shop_id": existing.get("shop_id", "metadigitalgoods"),
+                "updated_at": time.time(),
+            }
+        )
+        tmp = CONFIG_PATH.with_name(CONFIG_PATH.name + ".tmp")
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(json.dumps(existing, indent=2))
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, CONFIG_PATH)
+        return result
+
+    def exchange_oauth_code(self, code: str, code_verifier: Optional[str] = None, redirect_uri: Optional[str] = None) -> Dict[str, Any]:
+        """Exchange OAuth 2.0 authorization code for an Etsy access_token and refresh_token."""
+        cfg = self._load_config()
+        client_id = (self.api_key or cfg.get("api_key", "")).split(":")[0].strip()
+        verifier = code_verifier or cfg.get("code_verifier", "")
+        redirect = redirect_uri or cfg.get("redirect_uri", "https://metadigitalgoods.nealfrazier.tech/oauth/callback/")
+
+        if not client_id or not verifier:
+            raise ValueError("Missing client_id or code_verifier. Run 'etsy-connector auth --key <KEY>' first.")
+
+        payload = urllib.parse.urlencode(
+            {
+                "grant_type": "authorization_code",
+                "client_id": client_id,
+                "redirect_uri": redirect,
+                "code": code.strip(),
+                "code_verifier": verifier,
+            }
+        ).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://api.etsy.com/v3/public/oauth/token",
+            data=payload,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+                "User-Agent": "AntigravityEtsyConnector/0.1.0",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=15.0) as resp:
+            token_data = json.loads(resp.read().decode("utf-8"))
+
+        access_token = token_data.get("access_token", "")
+        cfg["access_token"] = access_token
+        cfg["refresh_token"] = token_data.get("refresh_token", "")
+        cfg["expires_in"] = token_data.get("expires_in", 3600)
+        cfg["updated_at"] = time.time()
+        self.save_credentials(
+            api_key=cfg.get("api_key", client_id),
+            access_token=access_token,
+            shop_id=cfg.get("shop_id", "metadigitalgoods"),
+        )
+        return token_data
+
+

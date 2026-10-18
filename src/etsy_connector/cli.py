@@ -53,6 +53,35 @@ def main(argv: Optional[List[str]] = None) -> int:
     search_p.add_argument("--limit", type=int, default=10, help="Max results to return (default: 10)")
     search_p.add_argument("--json", action="store_true", help="Output search results as JSON")
 
+    # Command: config
+    cfg_p = subparsers.add_parser("config", help="Save live Etsy API v3 credentials to ~/.etsy_connector_config.json")
+    cfg_p.add_argument("--key", required=True, help="Etsy API Keystring (Client ID)")
+    cfg_p.add_argument("--token", default="", help="OAuth 2.0 Bearer Access Token")
+    cfg_p.add_argument("--shop", default="metadigitalgoods", help="Shop ID or Shop Name (default: metadigitalgoods)")
+
+    # Command: auth
+    auth_p = subparsers.add_parser("auth", help="Generate OAuth 2.0 PKCE authorization link or exchange code for Etsy Open API v3")
+    auth_p.add_argument("--key", default="", help="Etsy API Keystring (or Keystring:SharedSecret)")
+    auth_p.add_argument("--redirect", default="https://metadigitalgoods.nealfrazier.tech/oauth/callback/", help="Redirect URI")
+    auth_p.add_argument("--exchange-code", default="", help="Exchange returned OAuth authorization code for an access token")
+
+    # Command: shop-update
+    shop_p = subparsers.add_parser("shop-update", help="Update shop title, announcement, and buyer messages via API")
+    shop_p.add_argument("--title", default=None, help="Shop tagline/title (max 140 chars)")
+    shop_p.add_argument("--announcement", default=None, help="Shop announcement text")
+    shop_p.add_argument("--digital-msg", default=None, help="Automatic message sent to digital download buyers")
+    shop_p.add_argument("--confirm", action="store_true", help="Execute live PUT against Etsy API")
+
+    # Command: draft-digital
+    draft_p = subparsers.add_parser("draft-digital", help="Create a digital download draft listing + attach files/mockups")
+    draft_p.add_argument("--title", required=True, help="Listing title (max 140 chars)")
+    draft_p.add_argument("--desc", required=True, help="Listing description")
+    draft_p.add_argument("--price", type=float, required=True, help="Retail price in USD (e.g. 6.99)")
+    draft_p.add_argument("--tags", required=True, help="Comma-separated 13 search tags (each <= 20 chars)")
+    draft_p.add_argument("--file", default=None, help="Optional path to digital PDF/ZIP file to attach")
+    draft_p.add_argument("--image", default=None, help="Optional path to listing mockup image (PNG/JPG)")
+    draft_p.add_argument("--confirm", action="store_true", help="Execute live POST against Etsy API")
+
     args = parser.parse_args(argv)
     cmd = args.command or "serve"
 
@@ -63,6 +92,59 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     elif cmd == "serve":
         run_server(port=args.port, host=args.host)
+        return 0
+
+    elif cmd == "config":
+        client = EtsyClient()
+        client.save_credentials(api_key=args.key, access_token=args.token, shop_id=args.shop)
+        print(f"✅ Saved Etsy credentials for shop '{args.shop}' to ~/.etsy_connector_config.json (0600 permissions).")
+        return 0
+
+    elif cmd == "auth":
+        client = EtsyClient()
+        if args.exchange_code:
+            token_data = client.exchange_oauth_code(args.exchange_code)
+            print("✅ OAuth 2.0 Access Token acquired and saved to ~/.etsy_connector_config.json!")
+            print(json.dumps(token_data, indent=2))
+            return 0
+        key_to_use = args.key or client.api_key
+        if not key_to_use:
+            raise ValueError("Please provide --key <KEYSTRING>.")
+        pkce = EtsyClient.generate_oauth_pkce(api_key=key_to_use, redirect_uri=args.redirect)
+        print("\n🔐 Etsy Open API v3 OAuth 2.0 PKCE Flow:")
+        print(f"1. Open this URL in your browser to authorize MetaDigitalGoods:\n   {pkce['auth_url']}\n")
+        print(f"2. Code Verifier (auto-saved to config):    {pkce['code_verifier']}")
+        print(f"3. State:                                   {pkce['state']}\n")
+        return 0
+
+    elif cmd == "shop-update":
+        client = EtsyClient()
+        res = client.update_shop(
+            title=args.title,
+            announcement=args.announcement,
+            digital_sale_message=args.digital_msg,
+            confirm=args.confirm,
+        )
+        print(json.dumps(res, indent=2))
+        return 0
+
+    elif cmd == "draft-digital":
+        client = EtsyClient()
+        tag_list = [t.strip() for t in args.tags.split(",") if t.strip()]
+        res = client.create_draft_listing(
+            title=args.title,
+            description=args.desc,
+            price=args.price,
+            tags=tag_list,
+            listing_type="download",
+            confirm=args.confirm,
+        )
+        listing_id = str(res.get("listing_id", "sim_listing"))
+        if args.image:
+            res["image_upload"] = client.upload_listing_image(listing_id=listing_id, image_path=args.image)
+        if args.file:
+            res["file_upload"] = client.upload_listing_file(listing_id=listing_id, file_path=args.file)
+        print(json.dumps(res, indent=2))
         return 0
 
     elif cmd == "audit":
@@ -123,3 +205,4 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

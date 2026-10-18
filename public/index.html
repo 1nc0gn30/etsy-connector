@@ -666,7 +666,7 @@
   <header>
     <div class="container header-inner">
       <a href="/" class="brand">
-        <img src="/assets/icon.png" alt="Etsy Connector Logo" class="brand-icon" style="width:36px; height:36px; border-radius:8px;">
+        <img src="assets/icon.png" alt="Etsy Connector Logo" class="brand-icon" style="width:36px; height:36px; border-radius:8px;">
         <div>
           <div class="brand-title">Etsy Connector</div>
           <div style="font-size: 0.7rem; color: var(--gold); font-family: var(--mono); font-weight: 700;">v2.5 SOVEREIGN • ANTIGRAVITY MCP SUITE</div>
@@ -675,7 +675,7 @@
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <span class="badge-free" id="licenseBadge" data-alias="proStatusBadge" data-alt-id="pro-badge">⚡ FREE TIER</span>
         <span class="badge-pro" id="statusBadge" style="display:none;">⚡ MCP ACTIVE</span>
-        <button class="btn btn-outline" id="btn-header-key" data-alias="btnActivateKey" style="min-height: 34px; padding: 4px 12px; font-size: 0.75rem;" onclick="openPaywallModal('Header Key Activation')">🔑 Enter Key</button>
+        <button class="btn btn-outline" id="btn-header-key" data-alias="btnActivateKey" style="min-height: 34px; padding: 4px 12px; font-size: 0.75rem;" onclick="openPaywallModal('Header Key Activation')">✦ Enter Key</button>
       </div>
     </div>
   </header>
@@ -707,7 +707,7 @@
     <div id="tab-seo" class="tab-content">
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">📝 Listing Input Optimizer</div>
+          <div class="card-title">✎ Listing Input Optimizer</div>
           <div class="form-group">
             <label for="listingTitle">Listing Title (<span id="titleCount">0</span>/140 chars)</label>
             <input type="text" id="listingTitle" value="Grandma's Garden Wildflower Sweatshirt, Cozy Cottagecore Gift, Floral Crewneck" oninput="runAudit()">
@@ -721,7 +721,7 @@
         </div>
 
         <div class="card">
-          <div class="card-title">🎯 Real-Time SEO Algorithm Score</div>
+          <div class="card-title">◎ Real-Time SEO Algorithm Score</div>
           <div class="score-circle">
             <div class="score-val" id="auditScore">97</div>
             <div>
@@ -753,7 +753,7 @@
     <div id="tab-profit" class="tab-content" style="display: none;">
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">💵 Pricing & Cost Model</div>
+          <div class="card-title">✦ Pricing & Cost Model</div>
           <div class="form-group">
             <label for="retailPrice">Retail Selling Price ($ USD)</label>
             <input type="number" id="retailPrice" value="38.99" step="0.50" oninput="runProfit()">
@@ -770,7 +770,7 @@
         </div>
 
         <div class="card">
-          <div class="card-title">📊 Net Margin & Payout Breakdown</div>
+          <div class="card-title">◈ Net Margin & Payout Breakdown</div>
           <div class="score-circle">
             <div class="score-val" id="netProfitVal" style="color: #34D399;">$19.46</div>
             <div>
@@ -802,7 +802,7 @@
     <div id="tab-pod" class="tab-content" style="display: none;">
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">📦 Day 7 Printify Blueprints</div>
+          <div class="card-title">▣ Day 7 Printify Blueprints</div>
           <div class="form-group">
             <label for="bpSelect">Select Product Cadre</label>
             <select id="bpSelect" onchange="updateBlueprint()">
@@ -829,20 +829,20 @@
 
         <div class="card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <div class="card-title" style="margin: 0;">🔒 Printify API Payload</div>
+            <div class="card-title" style="margin: 0;">★ Printify API Payload</div>
             <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" id="btn-copy-payload" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('copy_payload')">📋 Copy Payload (Pro)</button>
-              <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('export_matrix')">📥 Export CSV (Pro)</button>
+              <button type="button" class="btn btn-outline" id="btn-copy-payload" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('copy_payload')">✦ Copy Payload (Pro)</button>
+              <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('export_matrix')">↓ Export CSV (Pro)</button>
             </div>
           </div>
           <div class="paywall-wrapper" id="podPaywall">
             <div class="paywall-overlay" id="podOverlay">
-              <h4>🔒 Pro Production Payload & Automation</h4>
+              <h4>★ Pro Production Payload & Automation</h4>
               <p>Unlock 1-click JSON payloads for direct Printify webhooks, raw CSV matrix exports, and automated Etsy listing creation.</p>
               <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
                 <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" class="btn btn-gold" target="_blank" rel="noopener">⚡ Stripe Pay $19</a>
                 <button type="button" id="btn-depay-paywall" class="btn btn-solana btn-depay-trigger" onclick="triggerDePayCheckout()">◎ Solana $19</button>
-                <button type="button" id="btn-unlock-paywall" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openPaywallModal('Paywall Overlay')">🔑 Enter Key</button>
+                <button type="button" id="btn-unlock-paywall" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openPaywallModal('Paywall Overlay')">✦ Enter Key</button>
               </div>
             </div>
             <pre class="blurred-content" id="podJsonCode" style="font-family: var(--mono); font-size: 0.75rem; color: #38BDF8; background: #000; padding: 16px; border-radius: 8px;">
@@ -1134,7 +1134,7 @@
         localStorage.setItem('pro_licensed', 'true');
         if (status) {
           status.style.color = '#34D399';
-          status.textContent = '🎉 License key verified! Unlocking Pro privileges...';
+          status.textContent = '★ License key verified! Unlocking Pro privileges...';
         }
         showToast('⭐ Sovereign Pro License Activated Permanently!');
         checkLicense();
