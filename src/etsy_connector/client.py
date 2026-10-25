@@ -53,21 +53,30 @@ class EtsyClient:
                 pass
         return {}
 
-    def save_credentials(self, api_key: str, access_token: str, shop_id: str) -> None:
-        """Persist API credentials to user config file."""
-        self.api_key = api_key.strip()
-        self.access_token = access_token.strip()
-        self.shop_id = shop_id.strip()
+    def save_credentials(
+        self,
+        api_key: str,
+        access_token: str,
+        shop_id: str,
+        refresh_token: Optional[str] = None,
+    ) -> None:
+        """Persist API credentials to user config file without losing refresh_token."""
+        existing = self._load_config()
+        self.api_key = str(api_key).strip()
+        self.access_token = str(access_token).strip()
+        self.shop_id = str(shop_id).strip()
         self.simulate = not (self.api_key and self.access_token)
-        data = json.dumps(
+        existing.update(
             {
                 "api_key": self.api_key,
                 "access_token": self.access_token,
                 "shop_id": self.shop_id,
                 "updated_at": time.time(),
-            },
-            indent=2,
+            }
         )
+        if refresh_token:
+            existing["refresh_token"] = str(refresh_token).strip()
+        data = json.dumps(existing, indent=2)
         # Owner-only (0600) and atomic: credentials must not be world-readable.
         tmp = CONFIG_PATH.with_name(CONFIG_PATH.name + ".tmp")
         fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -75,6 +84,45 @@ class EtsyClient:
             f.write(data)
         os.chmod(tmp, 0o600)
         os.replace(tmp, CONFIG_PATH)
+
+    def refresh_oauth_token(self, refresh_token: Optional[str] = None) -> Dict[str, Any]:
+        """Refresh an expired Etsy OAuth 2.0 access_token using refresh_token."""
+        cfg = self._load_config()
+        client_id = (self.api_key or cfg.get("api_key", "")).split(":")[0].strip()
+        rt = (refresh_token or cfg.get("refresh_token", "")).strip()
+        if not client_id or not rt:
+            raise ValueError("Missing client_id or refresh_token for Etsy OAuth refresh.")
+
+        payload = urllib.parse.urlencode(
+            {
+                "grant_type": "refresh_token",
+                "client_id": client_id,
+                "refresh_token": rt,
+            }
+        ).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://api.etsy.com/v3/public/oauth/token",
+            data=payload,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+                "User-Agent": "AntigravityEtsyConnector/0.1.0",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=15.0) as resp:
+            token_data = json.loads(resp.read().decode("utf-8"))
+
+        new_access = token_data.get("access_token", "")
+        new_refresh = token_data.get("refresh_token", rt)
+        self.save_credentials(
+            api_key=self.api_key or cfg.get("api_key", client_id),
+            access_token=new_access,
+            shop_id=str(self.shop_id or cfg.get("shop_id", "68503004")),
+            refresh_token=new_refresh,
+        )
+        return token_data
 
     def is_configured(self) -> bool:
         """Return True if live credentials are configured."""
@@ -506,14 +554,16 @@ class EtsyClient:
             token_data = json.loads(resp.read().decode("utf-8"))
 
         access_token = token_data.get("access_token", "")
+        refresh_tok = token_data.get("refresh_token", "")
         cfg["access_token"] = access_token
-        cfg["refresh_token"] = token_data.get("refresh_token", "")
+        cfg["refresh_token"] = refresh_tok
         cfg["expires_in"] = token_data.get("expires_in", 3600)
         cfg["updated_at"] = time.time()
         self.save_credentials(
             api_key=cfg.get("api_key", client_id),
             access_token=access_token,
-            shop_id=cfg.get("shop_id", "metadigitalgoods"),
+            shop_id=str(cfg.get("shop_id", "68503004")),
+            refresh_token=refresh_tok,
         )
         return token_data
 
