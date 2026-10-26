@@ -1,3 +1,9 @@
+<div align="center">
+  <img src="assets/hero-banner.svg" alt="Etsy Connector — Sovereign Architecture Banner" width="100%" />
+</div>
+
+<br />
+
 # 🌸 Etsy Connector for Antigravity & Sovereign AI Agents
 
 > ⚡ **Live Web Application**: [https://etsy-connector.netlify.app](https://etsy-connector.netlify.app)  
