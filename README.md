@@ -6,9 +6,13 @@
 
 # 🌸 Etsy Connector for Antigravity & Sovereign AI Agents
 
-> ⚡ **Live Web Application**: [https://etsy-connector.netlify.app](https://etsy-connector.netlify.app)  
-> 💳 **Unlock Pro Lifetime License ($19 One-Time, $0/mo)**: **[Instant Pro Unlock via Stripe](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)** *(Use promo code `FOUNDER25` for 25% off)*  
-> 🏆 **All-Access Sovereign Pro Bundle (All 44 Tools — $49 Lifetime)**: **[Get All 44 Studios via Stripe](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)**
+## ☕ 100% Free & Open-Access (Zero Paywalls)
+
+Etsy Connector is **100% free, open-access, and unlocked by default**. All 8 MCP tools, 13-tag SEO rank auditors, and profit calculation models are completely free with zero paywalls.
+
+If you find this tool valuable, optional community support is welcome via:
+- **☕ Buy Us a Coffee (Stripe)**: [https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)
+- **◎ Solana Tip Address**: `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK` (`solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`)
 
 [![Audit](https://img.shields.io/badge/guardrail-100%25%20passed-emerald)](https://etsy.nullai.tech)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
