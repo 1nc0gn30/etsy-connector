@@ -26,7 +26,6 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icon.png">
 
   <!-- DePay Web3 Solana Widget v13 -->
-  <script src="https://integrate.depay.com/widgets/v13.js" defer></script>
   <script>
     window.addEventListener('load', function() {
       if (typeof window.DePayButtons !== 'undefined') {
@@ -65,7 +64,7 @@
           "price": "19.00",
           "priceCurrency": "USD",
           "availability": "https://schema.org/InStock",
-          "url": "https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L"
+          "url": "https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X"
         },
         "creator": {
           "@type": "Person",
@@ -97,7 +96,7 @@
             "name": "What payment methods are accepted for Pro Lifetime Access?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "You can pay via Stripe (Credit Cards, Apple Pay, Google Pay) or decentralized crypto via Solana DePay."
+              "text": "You can pay via Stripe (Credit Cards, Apple Pay, Google Pay) or decentralized crypto via Solana Tip."
             }
           }
         ]
@@ -453,7 +452,7 @@
     }
 
     .blurred-content {
-      filter: blur(6px);
+      filter: none;
       user-select: none;
       pointer-events: none;
       opacity: 0.5;
@@ -512,7 +511,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
+      backdrop-filter: none;
       display: none;
       align-items: center;
       justify-content: center;
@@ -689,7 +688,7 @@
         <p>Unlimited Etsy SEO Audits, 1-Click Printify POD Sync, and Instant Antigravity MCP Access.</p>
       </div>
       <div class="banner-actions">
-        <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" class="btn btn-gold" target="_blank" rel="noopener">Pay with Stripe ($19)</a>
+        <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" class="btn btn-gold" target="_blank" rel="noopener">Pay with Stripe ($19)</a>
         <button type="button" id="btn-depay-solana" class="btn btn-solana btn-depay-trigger" onclick="triggerDePayCheckout()">⚡ Pay with Solana ($19)</button>
         <button type="button" class="btn btn-outline" id="btn-open-license-modal" onclick="openPaywallModal('Sales Banner Activation')">Have Key? Activate</button>
       </div>
@@ -840,7 +839,7 @@
               <h4>★ Pro Production Payload & Automation</h4>
               <p>Unlock 1-click JSON payloads for direct Printify webhooks, raw CSV matrix exports, and automated Etsy listing creation.</p>
               <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
-                <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" class="btn btn-gold" target="_blank" rel="noopener">⚡ Stripe Pay $19</a>
+                <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" class="btn btn-gold" target="_blank" rel="noopener">⚡ Stripe Pay $19</a>
                 <button type="button" id="btn-depay-paywall" class="btn btn-solana btn-depay-trigger" onclick="triggerDePayCheckout()">◎ Solana $19</button>
                 <button type="button" id="btn-unlock-paywall" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openPaywallModal('Paywall Overlay')">✦ Enter Key</button>
               </div>
@@ -905,8 +904,8 @@
         <li class="matrix-item"><span class="matrix-check">✓</span> <span><strong>Lifetime Sovereign License</strong>: Zero recurring subscriptions, instant client-side unlock</span></li>
       </ul>
       <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-        <a href="https://buy.stripe.com/4gMfZg9AheOsdhKbcAfw40L" class="btn btn-gold" style="flex: 1; min-width: 180px; justify-content: center;" target="_blank" rel="noopener">⚡ Pay with Stripe ($19)</a>
-        <button type="button" id="btn-depay-modal" class="btn btn-solana btn-depay-trigger" style="flex: 1; min-width: 180px; justify-content: center;" onclick="triggerDePayCheckout()">◎ Pay with Solana ($19)</button>
+        <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" class="btn btn-gold" style="flex: 1; min-width: 180px; justify-content: center;" target="_blank" rel="noopener">⚡ Pay with Stripe ($19)</a>
+        <button type="button" id="btn-depay-modal" class="btn btn-solana btn-depay-trigger" style="flex: 1; min-width: 180px; justify-content: center;" onclick="triggerDePayCheckout()">◎ Solana Tip (GG2eQb…dXoK) ($19)</button>
       </div>
       <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--card-border);">
         <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px;">Already purchased? Enter your license key or receipt email:</div>
@@ -1212,7 +1211,7 @@
       }
     }
 
-    // Solana DePay Fallback
+    // Solana Tip Fallback
     function triggerDePayCheckout() {
       const solanaAddress = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';
       navigator.clipboard.writeText(solanaAddress).then(() => {
