@@ -1,7 +1,7 @@
 """REST API Server & Web Cockpit for etsy-connector.
 
 Serves on port 8107 with zero external dependencies (100% Python standard library).
-Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
+Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
 """
 
 from __future__ import annotations

@@ -2,7 +2,7 @@
 
 Exposes Etsy operations, SEO audits, and Print-on-Demand bridges directly
 to Antigravity AI agents via standard JSON-RPC 2.0 over stdio.
-Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
+Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
 100% Python Standard Library — Zero External Dependencies.
 """
 

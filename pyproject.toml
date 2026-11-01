@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "etsy-connector"
 version = "0.1.0"
 description = "Etsy Open API v3 and Print-on-Demand MCP Connector for Antigravity AI Agents"
-authors = [{ name = "Neal Frazier", email = "neal@nealfrazier.tech" }]
+authors = [{ name = "1nc0gn30", email = "neal@nullai.tech" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []

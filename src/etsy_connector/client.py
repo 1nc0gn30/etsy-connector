@@ -1,6 +1,6 @@
 """Etsy Open API v3 Client with Resilient Simulation Mode.
 
-Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
+Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
 100% Python Standard Library — Zero External Dependencies.
 """
 
@@ -461,7 +461,7 @@ class EtsyClient:
     @staticmethod
     def generate_oauth_pkce(
         api_key: str,
-        redirect_uri: str = "https://metadigitalgoods.nealfrazier.tech/oauth/callback/",
+        redirect_uri: str = "https://metadigitalgoods.nullai.tech/oauth/callback/",
         scopes: str = "listings_r listings_w shops_r shops_w transactions_r",
     ) -> Dict[str, str]:
         """Generate OAuth 2.0 PKCE verifier, challenge, and authorization URL for Etsy API v3."""
@@ -525,7 +525,7 @@ class EtsyClient:
         cfg = self._load_config()
         client_id = (self.api_key or cfg.get("api_key", "")).split(":")[0].strip()
         verifier = code_verifier or cfg.get("code_verifier", "")
-        redirect = redirect_uri or cfg.get("redirect_uri", "https://metadigitalgoods.nealfrazier.tech/oauth/callback/")
+        redirect = redirect_uri or cfg.get("redirect_uri", "https://metadigitalgoods.nullai.tech/oauth/callback/")
 
         if not client_id or not verifier:
             raise ValueError("Missing client_id or code_verifier. Run 'etsy-connector auth --key <KEY>' first.")

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Etsy Connector for Antigravity • Autonomous API & Print-on-Demand Suite</title>
   <meta name="description" content="Sovereign Etsy Open API v3 and Print-on-Demand connector for Google Antigravity AI agents. Real-time SEO auditing for 13 tags, fee & margin calculator, and Printify integration.">
-  <meta name="author" content="Neal Frazier Tech (@1nc0gn30)">
+  <meta name="author" content="1nc0gn30 (@1nc0gn30)">
   
   <!-- OpenGraph Meta Tags -->
   <meta property="og:title" content="Etsy Connector for Antigravity • Autonomous POD & SEO Suite">
@@ -24,23 +24,6 @@
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icon.png">
-
-  <!-- DePay Web3 Solana Widget v13 -->
-  <script>
-    window.addEventListener('load', function() {
-      if (typeof window.DePayButtons !== 'undefined') {
-        window.DePayButtons.init({
-          selector: '.btn-depay-trigger',
-          integration: '428790dd-7ad1-407c-8ecf-c048c77a4cb8',
-          payload: {
-            receiver: 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK',
-            amount: 19.00,
-            currency: 'USD'
-          }
-        });
-      }
-    });
-  </script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,8 +51,8 @@
         },
         "creator": {
           "@type": "Person",
-          "name": "Neal Frazier",
-          "url": "https://nealfrazier.tech"
+          "name": "1nc0gn30",
+          "url": "https://nullai.tech"
         }
       },
       {
@@ -796,10 +779,10 @@
         <div class="card">
           <div class="card-title">◈ Net Margin & Payout Breakdown</div>
           <div class="score-circle">
-            <div class="score-val" id="netProfitVal" style="color: #34D399;">Free (100% Open Access).46</div>
+            <div class="score-val" id="netProfitVal" style="color: #34D399;">$0.34</div>
             <div>
-              <div style="font-weight: 700; font-size: 1.1rem; color: #FFF;" id="marginVal">49.9% Net Margin</div>
-              <div style="font-size: 0.8rem; color: var(--text-dim);" id="roiVal">125.5% ROI on POD spend</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: #FFF;" id="marginVal">49.6% Net Margin</div>
+              <div style="font-size: 0.8rem; color: var(--text-dim);" id="roiVal">124.8% ROI on POD spend</div>
             </div>
           </div>
           <div class="stat-row">
@@ -855,8 +838,8 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div class="card-title" style="margin: 0;">★ Printify API Payload</div>
             <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" id="btn-copy-payload" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('copy_payload')">✦ Copy Payload (Pro)</button>
-              <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('export_matrix')">↓ Export CSV (Pro)</button>
+              <button type="button" class="btn btn-outline" id="btn-copy-payload" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('copy_payload')">✦ Copy Payload</button>
+              <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('export_matrix')">↓ Export CSV</button>
             </div>
           </div>
           <div class="paywall-wrapper" id="podPaywall">
@@ -901,7 +884,7 @@
 
   <footer>
     <div class="container">
-      Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30" target="_blank" rel="noopener">@1nc0gn30</a>) • <a href="https://nullai.tech" target="_blank" rel="noopener">NullAI Platform</a>
+      Engineered by 1nc0gn30 • NullAI (<a href="https://github.com/1nc0gn30" target="_blank" rel="noopener">@1nc0gn30</a>) • <a href="https://nullai.tech" target="_blank" rel="noopener">NullAI Platform</a>
     </div>
   </footer>
 
@@ -909,12 +892,14 @@
     // Tab switching
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('active');
+        if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'" + tabId + "'")) {
+          el.classList.add('active');
+        }
+      });
       const target = document.getElementById('tab-' + tabId);
       if (target) target.style.display = 'block';
-      if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-      }
     }
 
     // SEO Audit in Browser
@@ -1150,7 +1135,7 @@
     }
 
     // Solana Tip Fallback (Zero Paywalls)
-    function triggerDePayCheckout() {
+    function triggerSolanaTipCheckout() {
       const solanaAddress = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';
       navigator.clipboard.writeText(solanaAddress).then(() => {
         showToast('✓ Solana Tip Address Copied: ' + solanaAddress);
@@ -1179,5 +1164,6 @@
     updateBlueprint();
     checkLicense();
   </script>
+  <script src="/assets/sovereign-upgrade.js" defer></script>
 </body>
 </html>
