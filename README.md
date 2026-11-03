@@ -46,10 +46,10 @@ Add to `~/.gemini/config/mcp_config.json`:
 {
   "mcpServers": {
     "etsy-connector": {
-      "command": "/home/zoth/NullAITech/etsy-connector/bin/etsy-connector",
+      "command": "~/NullAITech/etsy-connector/bin/etsy-connector",
       "args": ["mcp"],
       "env": {
-        "PYTHONPATH": "/home/zoth/NullAITech/etsy-connector/src"
+        "PYTHONPATH": "~/NullAITech/etsy-connector/src"
       }
     }
   }

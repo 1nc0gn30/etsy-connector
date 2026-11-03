@@ -17,7 +17,7 @@ import random
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-OUT_DIR = Path("/home/zoth/NullAITech/etsy-connector/brand_assets/metadigitalgoods")
+OUT_DIR = Path("~/NullAITech/etsy-connector/brand_assets/metadigitalgoods")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 

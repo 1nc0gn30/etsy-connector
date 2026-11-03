@@ -14,13 +14,13 @@ import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
-sys.path.insert(0, "/home/zoth/NullAITech/etsy-connector/src")
+sys.path.insert(0, "~/NullAITech/etsy-connector/src")
 from etsy_connector.client import EtsyClient
 
-BRAND_DIR = Path("/home/zoth/NullAITech/etsy-connector/brand_assets/metadigitalgoods")
-STUDIO_DIR = Path("/home/zoth/NullAITech/metadigitalgoods/public/assets/studio")
-PUBLIC_ASSETS_DIR = Path("/home/zoth/NullAITech/metadigitalgoods/public/assets")
-ARTIFACT_DIR = Path("/home/zoth/.gemini/antigravity-cli/brain/5e2f4196-8ec1-4cf2-8d92-bad9291e3aa7")
+BRAND_DIR = Path("~/NullAITech/etsy-connector/brand_assets/metadigitalgoods")
+STUDIO_DIR = Path("~/NullAITech/metadigitalgoods/public/assets/studio")
+PUBLIC_ASSETS_DIR = Path("~/NullAITech/metadigitalgoods/public/assets")
+ARTIFACT_DIR = Path("~/.gemini/antigravity-cli/brain/5e2f4196-8ec1-4cf2-8d92-bad9291e3aa7")
 
 BRAND_DIR.mkdir(parents=True, exist_ok=True)
 PUBLIC_ASSETS_DIR.mkdir(parents=True, exist_ok=True)

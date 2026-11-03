@@ -21,13 +21,13 @@ import time
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-sys.path.insert(0, "/home/zoth/NullAITech/etsy-connector/src")
+sys.path.insert(0, "~/NullAITech/etsy-connector/src")
 from etsy_connector.client import EtsyClient
 
-BRAND_DIR = Path("/home/zoth/NullAITech/etsy-connector/brand_assets/metadigitalgoods")
+BRAND_DIR = Path("~/NullAITech/etsy-connector/brand_assets/metadigitalgoods")
 PDF_DIR = BRAND_DIR / "pdfs"
 MOCKUP_DIR = BRAND_DIR / "mockups"
-STUDIO_DIR = Path("/home/zoth/NullAITech/metadigitalgoods/public/assets/studio")
+STUDIO_DIR = Path("~/NullAITech/metadigitalgoods/public/assets/studio")
 PDF_DIR.mkdir(parents=True, exist_ok=True)
 MOCKUP_DIR.mkdir(parents=True, exist_ok=True)
 

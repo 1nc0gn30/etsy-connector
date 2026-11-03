@@ -1,7 +1,7 @@
 # MetaDigitalGoods — Etsy Storefront Setup & Automation Playbook
 
 ## 1. Generated Brand Assets & First Product Pack
-All files are located in `/home/zoth/NullAITech/etsy-connector/brand_assets/metadigitalgoods/`:
+All files are located in `~/NullAITech/etsy-connector/brand_assets/metadigitalgoods/`:
 - **Shop Icon (500x500 px)**: `shop_icon_500x500.png`
 - **Big Shop Banner (3360x840 px)**: `shop_banner_big_3360x840.png`
 - **Mini Shop Banner (1200x160 px)**: `shop_banner_mini_1200x160.png`
@@ -71,7 +71,7 @@ cd ~/NullAITech/etsy-connector
   --price 6.99 \
   --tags "50s 60s trivia game,large print bingo,senior party games,golden era trivia,printable bingo pdf,retirement party,church social games,family reunion game,nostalgia game pack,senior activity pdf,1950s party game,1960s music bingo,ladies tea party" \
   --desc "Enjoy a heartwarming trip down memory lane with the 1950s & 1960s Golden Era Trivia and Bingo Printable Bundle! Designed with easy-on-the-eyes 18pt+ Large Print that prints effortlessly at home on standard 8.5x11 US Letter paper. Includes 20 nostalgic trivia questions, full host answer key, and unique Large-Print Bingo cards. Instant digital download PDF." \
-  --image /home/zoth/NullAITech/etsy-connector/brand_assets/metadigitalgoods/Listing_1_Hero_Mockup_2000x2000.png \
-  --file /home/zoth/NullAITech/etsy-connector/brand_assets/metadigitalgoods/Listing_1_Golden_Era_Trivia_Bingo_Pack.pdf \
+  --image ~/NullAITech/etsy-connector/brand_assets/metadigitalgoods/Listing_1_Hero_Mockup_2000x2000.png \
+  --file ~/NullAITech/etsy-connector/brand_assets/metadigitalgoods/Listing_1_Golden_Era_Trivia_Bingo_Pack.pdf \
   --confirm
 ```

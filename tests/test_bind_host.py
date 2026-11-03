@@ -18,7 +18,7 @@ class TestBindHost(unittest.TestCase):
 
     def test_hostname_in_HOST_is_ignored(self):
         # zsh exports HOST=<hostname>; that must not silently expose the server.
-        with mock.patch.dict(os.environ, {"HOST": "zoth-pill"}, clear=True):
+        with mock.patch.dict(os.environ, {"HOST": "zothos"}, clear=True):
             self.assertEqual(_default_bind_host(), "127.0.0.1")
         with mock.patch.dict(os.environ, {"HOST": "localhost"}, clear=True):
             self.assertEqual(_default_bind_host(), "127.0.0.1")
