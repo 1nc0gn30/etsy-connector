@@ -1164,6 +1164,22 @@
     updateBlueprint();
     checkLicense();
   </script>
-  <script src="/assets/sovereign-upgrade.js" defer></script>
+  
+
+  <script src="/sovereign_tutorial.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", function() {
+      if (window.createSovereignTutorial) {
+        window.createSovereignTutorial({
+          toolId: "etsy-connector",
+          toolName: "Etsy Connector",
+          tagline: "Supercharge your online shop with AI keyword and ranking audits!",
+          accentColor: "#F97316",
+          steps: [{"icon": "\ud83d\udecd\ufe0f", "title": "Rank Higher on Etsy", "desc": "Helps shoppers find your items by testing your titles and search tags against Etsy's ranking algorithm."}, {"icon": "\ud83c\udff7\ufe0f", "title": "The 13-Tag Inspector", "desc": "Make sure you use all 13 tags without wasting space on repeats or banned words."}, {"icon": "\ud83d\udcb0", "title": "Instant Profit Margins", "desc": "Calculates Etsy seller fees and shipping costs so you know exactly how much money you take home."}]
+        });
+      }
+    });
+  </script>
+
 </body>
 </html>
