@@ -426,63 +426,6 @@
     .stat-row:last-child { border-bottom: none; }
     .stat-val { font-family: var(--mono); font-weight: 600; color: #FFF; }
 
-    /* Output Paywall Blur */
-    .paywall-wrapper {
-      position: relative;
-      margin-top: 20px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .blurred-content {
-      filter: none;
-      user-select: none;
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    .paywall-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(9, 9, 13, 0.75);
-      padding: 24px;
-      text-align: center;
-      z-index: 10;
-    }
-
-    .paywall-overlay h4 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #FFF;
-      margin-bottom: 6px;
-    }
-
-    .paywall-overlay p {
-      font-size: 0.85rem;
-      color: var(--text-dim);
-      margin-bottom: 16px;
-      max-width: 380px;
-    }
-
-    body.pro-licensed .paywall-overlay,
-    body.pro-unlocked .paywall-overlay,
-    .paywall-wrapper.pro-unlocked .paywall-overlay {
-      display: none !important;
-    }
-
-    body.pro-licensed .blurred-content,
-    body.pro-unlocked .blurred-content,
-    .paywall-wrapper.pro-unlocked .blurred-content {
-      filter: none !important;
-      user-select: auto !important;
-      pointer-events: auto !important;
-      opacity: 1 !important;
-    }
-
     pre {
       white-space: pre-wrap;
       word-break: break-all;
@@ -680,7 +623,7 @@
 <div id="zoth-coffee-support-bar" style="background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(212,175,55,0.14)); border-bottom: 1px solid rgba(212,175,55,0.35); padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; z-index: 9999;">
   <span style="color: #10B981; font-weight: 800;">✦ 100% FREE &amp; OPEN ACCESS · ZERO PAYWALLS</span>
   <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer" style="background: #D4AF37; color: #08080B; padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">☕ Buy Us a Coffee (Stripe)</a>
-  <a href="solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK" onclick="if(navigator.clipboard){navigator.clipboard.writeText('GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK');this.textContent='✓ Copied GG2eQb...dXoK!';}" style="background: rgba(20,241,149,0.15); color: #14F195; border: 1px solid rgba(20,241,149,0.45); padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">◎ Solana Tip (GG2e...dXoK)</a>
+  <button type="button" id="btn-copy-solana" onclick="copySolanaAddress(this)" style="background: rgba(20,241,149,0.15); color: #14F195; border: 1px solid rgba(20,241,149,0.45); padding: 4px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-size: inherit;">◎ Tip Solana: GG2e...dXoK</button>
 </div>
 
 
@@ -838,11 +781,11 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div class="card-title" style="margin: 0;">★ Printify API Payload</div>
             <div style="display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" id="btn-copy-payload" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('copy_payload')">✦ Copy Payload</button>
-              <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="triggerProAction('export_matrix')">↓ Export CSV</button>
+              <button type="button" class="btn btn-outline" id="btn-copy-payload" style="padding: 4px 10px; font-size: 0.75rem;" onclick="copyPrintifyPayload()">✦ Copy Payload</button>
+              <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="exportBlueprintCsv()">↓ Export CSV</button>
             </div>
           </div>
-          <div class="paywall-wrapper" id="podPaywall">
+          <div id="podPaywall">
             <pre id="podJsonCode" style="font-family: var(--mono); font-size: 0.75rem; color: #38BDF8; background: #000; padding: 16px; border-radius: 8px;">
 {
   "blueprint_id": 49,
@@ -884,7 +827,7 @@
 
   <footer>
     <div class="container">
-      Engineered by 1nc0gn30 • NullAI (<a href="https://github.com/1nc0gn30" target="_blank" rel="noopener">@1nc0gn30</a>) • <a href="https://nullai.tech" target="_blank" rel="noopener">NullAI Platform</a>
+      Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30" target="_blank" rel="noopener">@1nc0gn30</a>) • <a href="https://nullai.tech" target="_blank" rel="noopener">NullAI Platform</a>
     </div>
   </footer>
 
@@ -1003,20 +946,6 @@
       document.getElementById('podJsonCode').textContent = JSON.stringify(payload, null, 2);
     }
 
-    // Modal controls
-    function openPaywallModal(feature) {
-      if (feature) {
-        document.getElementById('modalFeatureName').textContent = feature;
-      }
-      const modal = document.getElementById('paywall-modal');
-      modal.classList.add('open');
-      document.getElementById('license-status').textContent = '';
-      setTimeout(() => {
-        const inp = document.getElementById('license-key-input');
-        if (inp) inp.focus();
-      }, 50);
-    }
-
     // Toast notification helper
     function showToast(msg) {
       console.log('[ETSY]', msg);
@@ -1037,79 +966,62 @@
       }, 3500);
     }
 
-    function closePaywallModal() {
-      const modal = document.getElementById('paywall-modal');
-      modal.classList.remove('open');
+    // 100% Open Access Actions (Zero Paywalls)
+    function copyPrintifyPayload() {
+      const text = document.getElementById('podJsonCode').textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('btn-copy-payload');
+        const original = btn.textContent;
+        btn.textContent = '✓ Payload Copied!';
+        showToast('✓ Printify Production Payload copied to clipboard!');
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      }).catch(err => {
+        showToast('Printify JSON ready for export.');
+      });
     }
 
-    // Action Interceptor (Zero Paywalls)
+    function exportBlueprintCsv() {
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        "Product,Blueprint ID,Print Provider ID,Retail Price,Base Cost,Resolution,Status\n" +
+        "Comfort Colors 1717 Garment-Dyed Tee,638,29,$32.99,$12.80,4500x5400 px,Ready\n" +
+        "Gildan 18000 Heavy Blend Crewneck Sweatshirt,49,29,$38.99,$15.50,4500x5400 px,Ready\n" +
+        "Ceramic Accent Mug 15oz,68,29,$21.99,$6.80,2400x1100 px,Ready\n" +
+        "Liberty Bags Heavy Canvas Tote,611,29,$24.99,$7.20,3600x3600 px,Ready\n" +
+        "Instant Digital Download 300 DPI Wall Art,0,0,$9.99,$0.00,7200x10800 px,Ready\n";
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "etsy_printify_blueprints.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('✓ Blueprint CSV Matrix downloaded!');
+    }
+
+    // Direct fallback for triggerProAction
     function triggerProAction(actionType) {
-
       if (actionType === 'copy_payload') {
-        const text = document.getElementById('podJsonCode').textContent.trim();
-        navigator.clipboard.writeText(text).then(() => {
-          const btn = document.getElementById('btn-copy-payload');
-          const original = btn.textContent;
-          btn.textContent = '✓ Payload Copied!';
-          showToast('✓ Printify Production Payload copied to clipboard!');
-          setTimeout(() => { btn.textContent = original; }, 2000);
-        }).catch(err => {
-          showToast('Printify JSON ready for export.');
-        });
+        copyPrintifyPayload();
       } else if (actionType === 'export_matrix') {
-        const csvContent = "data:text/csv;charset=utf-8," + 
-          "Product,Blueprint ID,Print Provider ID,Retail Price,Base Cost,Resolution,Status\n" +
-          "Comfort Colors 1717 Garment-Dyed Tee,638,29,$32.99,$12.80,4500x5400 px,Ready\n" +
-          "Gildan 18000 Heavy Blend Crewneck Sweatshirt,49,29,$38.99,$15.50,4500x5400 px,Ready\n" +
-          "Ceramic Accent Mug 15oz,68,29,$21.99,$6.80,2400x1100 px,Ready\n" +
-          "Liberty Bags Heavy Canvas Tote,611,29,$24.99,$7.20,3600x3600 px,Ready\n" +
-          "Instant Digital Download 300 DPI Wall Art,0,0,$9.99,$0.00,7200x10800 px,Ready\n";
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "etsy_printify_blueprints.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast('✓ Blueprint CSV Matrix downloaded!');
+        exportBlueprintCsv();
       }
     }
 
-    // Key Verification
-    function verifyLicenseKey() {
-      const inp = document.getElementById('licenseKeyInput') || document.getElementById('license-key-input');
-      const status = document.getElementById('license-status');
-      const val = (inp ? inp.value : '').trim();
-
-      if (val.length >= 4 || val.includes('@') || val.toUpperCase() === 'ETSY-PRO-2026' || val.toUpperCase() === 'SOVEREIGN-PRO-2026') {
-        localStorage.setItem('etsy_connector_pro', 'true');
-        localStorage.setItem('zoth_etsy_licensed', 'true');
-        localStorage.setItem('pro_licensed', 'true');
-        if (status) {
-          status.style.color = '#34D399';
-          status.textContent = '★ License key verified! Unlocking Pro privileges...';
+    // Solana Tip Click-to-Copy (Zero Paywalls)
+    function copySolanaAddress(btn) {
+      const solanaAddress = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';
+      navigator.clipboard.writeText(solanaAddress).then(() => {
+        if (btn) {
+          const orig = btn.textContent;
+          btn.textContent = '✓ Solana Address Copied!';
+          setTimeout(() => { btn.textContent = orig; }, 2500);
         }
-        showToast('⭐ Sovereign Pro License Activated Permanently!');
-        checkLicense();
-        setTimeout(() => {
-          closePaywallModal();
-        }, 500);
-      } else {
-        if (status) {
-          status.style.color = '#F87171';
-          status.textContent = '⚠️ Invalid key or email format. Please check receipt.';
-        }
-        showToast('Invalid key or email format.');
-      }
+        showToast('✓ Solana Tip Address copied to clipboard!');
+      }).catch(() => {
+        window.open('solana:' + solanaAddress, '_blank');
+      });
     }
-
-    window.activateLicenseKey = function(key) {
-      const inp = document.getElementById('licenseKeyInput') || document.getElementById('license-key-input');
-      if (inp) inp.value = key;
-      verifyLicenseKey();
-    };
-    window.openLicenseModal = openPaywallModal;
 
     // License Check (100% Free & Open Access)
     function checkLicense() {
@@ -1133,30 +1045,6 @@
       const jsonCode = document.getElementById('podJsonCode');
       if (jsonCode) jsonCode.classList.remove('blurred-content');
     }
-
-    // Solana Tip Fallback (Zero Paywalls)
-    function triggerSolanaTipCheckout() {
-      const solanaAddress = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';
-      navigator.clipboard.writeText(solanaAddress).then(() => {
-        showToast('✓ Solana Tip Address Copied: ' + solanaAddress);
-      }).catch(() => {
-        window.open('solana:' + solanaAddress, '_blank');
-      });
-    }
-
-    // Keyboard bindings
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closePaywallModal();
-      }
-    });
-
-    const keyInp = document.getElementById('licenseKeyInput') || document.getElementById('license-key-input');
-    keyInp?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        verifyLicenseKey();
-      }
-    });
 
     // Init
     runAudit();

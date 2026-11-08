@@ -13,9 +13,6 @@ from pathlib import Path
 from etsy_connector.client import EtsyClient
 from etsy_connector.web_cockpit import EtsyCockpitHandler
 
-TEST_PORT = 18107
-
-
 class TestEtsyApi(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -29,7 +26,8 @@ class TestEtsyApi(unittest.TestCase):
             "pod_payloads_generated": 0,
             "searches_executed": 0,
         }
-        cls.server = ThreadingHTTPServer(("127.0.0.1", TEST_PORT), EtsyCockpitHandler)
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), EtsyCockpitHandler)
+        cls.port = cls.server.server_address[1]
         cls.server_thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.server_thread.start()
         time.sleep(0.1)
@@ -37,9 +35,10 @@ class TestEtsyApi(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
 
     def test_health_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/health"
+        url = f"http://127.0.0.1:{self.port}/health"
         with urllib.request.urlopen(url, timeout=2.0) as resp:
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode())
@@ -48,7 +47,7 @@ class TestEtsyApi(unittest.TestCase):
             self.assertEqual(data["port"], 8108)
 
     def test_stats_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/api/stats"
+        url = f"http://127.0.0.1:{self.port}/api/stats"
         with urllib.request.urlopen(url, timeout=2.0) as resp:
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode())
@@ -56,21 +55,21 @@ class TestEtsyApi(unittest.TestCase):
             self.assertEqual(data["active_mcp_tools"], 8)
 
     def test_taxonomy_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/api/taxonomy"
+        url = f"http://127.0.0.1:{self.port}/api/taxonomy"
         with urllib.request.urlopen(url, timeout=2.0) as resp:
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode())
             self.assertTrue(len(data.get("categories", [])) >= 6)
 
     def test_mcp_tools_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/api/mcp/tools"
+        url = f"http://127.0.0.1:{self.port}/api/mcp/tools"
         with urllib.request.urlopen(url, timeout=2.0) as resp:
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode())
             self.assertEqual(data["count"], 8)
 
     def test_post_audit_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/api/audit"
+        url = f"http://127.0.0.1:{self.port}/api/audit"
         payload = json.dumps({
             "title": "Grandma's Garden Wildflower Sweatshirt, Cozy Cottagecore Gift, Floral Crewneck",
             "tags": [
@@ -90,7 +89,7 @@ class TestEtsyApi(unittest.TestCase):
             self.assertTrue(data["is_ready_to_publish"])
 
     def test_post_profit_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/api/profit"
+        url = f"http://127.0.0.1:{self.port}/api/profit"
         payload = json.dumps({"retail_price": 34.99, "pod_base_cost": 12.80}).encode()
         req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=2.0) as resp:
@@ -99,7 +98,7 @@ class TestEtsyApi(unittest.TestCase):
             self.assertTrue(data["net_profit"] > 17.0)
 
     def test_post_create_draft_endpoint(self):
-        url = f"http://127.0.0.1:{TEST_PORT}/api/create-draft"
+        url = f"http://127.0.0.1:{self.port}/api/create-draft"
         payload = json.dumps({
             "title": "Cosmic Sacred Geometry Fleece Blanket",
             "description": "Ultra plush archival print throw blanket.",

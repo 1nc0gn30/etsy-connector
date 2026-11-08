@@ -6,6 +6,6 @@
   "license": "MIT",
   "scripts": {
     "serve": "python3 -m http.server 8108 --directory public",
-    "test": "python3 -m unittest discover tests"
+    "test": "pytest tests"
   }
 }
