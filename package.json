@@ -5,7 +5,8 @@
   "author": "1nc0gn30 (@1nc0gn30)",
   "license": "MIT",
   "scripts": {
-    "serve": "python3 -m http.server 8108 --directory public",
+    "start": "python3 server.py --host 127.0.0.1 --port 8108",
+    "serve": "python3 -m http.server 8108 --bind 127.0.0.1 --directory public",
     "test": "pytest tests"
   }
 }

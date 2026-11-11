@@ -6,10 +6,16 @@ build-backend = "setuptools.build_meta"
 name = "etsy-connector"
 version = "0.1.0"
 description = "Etsy Open API v3 and Print-on-Demand MCP Connector for Antigravity AI Agents"
-authors = [{ name = "1nc0gn30", email = "neal@nullai.tech" }]
+authors = [{ name = "1nc0gn30", email = "hello@nullai.tech" }]
+license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[project.urls]
+Homepage = "https://zoth.nullai.tech/tools/etsy-connector"
+Repository = "https://github.com/1nc0gn30/etsy-connector"
+Documentation = "https://nullai.tech"
 
 [project.scripts]
 etsy-connector = "etsy_connector.cli:main"

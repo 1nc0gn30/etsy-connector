@@ -1,146 +1,166 @@
-<div align="center">
-  <img src="assets/hero-banner.svg" alt="Etsy Connector — Sovereign Architecture Banner" width="100%" />
-</div>
+<p align="center">
+  <img src="assets/hero-banner.svg" alt="Etsy Connector — Etsy Open API v3 Bridge, 13-Tag SEO Auditor, Fee/Margin Calculator & MCP Server" width="100%" />
+</p>
 
-<br />
+# Etsy Connector
 
-# 🌸 Etsy Connector for Antigravity & Sovereign AI Agents
+**Zero-dependency Python 3.10+ Etsy Open API v3 client, OAuth 2.0 PKCE helper, 13-tag SEO rank auditor, seller fee and net profit calculator, Printify/Gelato POD payload generator, loopback cockpit, and 8-tool MCP server.**
 
-## ☕ 100% Free & Open-Access (Zero Paywalls)
-
-Etsy Connector is **100% free, open-access, and unlocked by default**. All 8 MCP tools, 13-tag SEO rank auditors, and profit calculation models are completely free with zero paywalls.
-
-If you find this tool valuable, optional community support is welcome via:
-- **☕ Buy Us a Coffee (Stripe)**: [https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)
-- **◎ Solana Tip Address**: `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK` (`solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`)
-
-[![Audit](https://img.shields.io/badge/guardrail-100%25%20passed-emerald)](https://etsy.nullai.tech)
-[![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
-[![Python](https://img.shields.io/badge/python-3.10%2B-gold)](https://python.org)
-[![Zero Pip](https://img.shields.io/badge/dependencies-0%20external-purple)](https://nullai.tech)
-
-Autonomous Etsy Open API v3 and Print-on-Demand (POD) bridge for **Google Antigravity** AI agents. Exposes 8 Model Context Protocol (MCP) tools for competitor search, 13-tag SEO ranking audits, exact fee & profit modeling, and automated Printify fulfillment payloads.
+- **Zoth Studio v2 Dossier**: [https://zoth.nullai.tech/tools/etsy-connector](https://zoth.nullai.tech/tools/etsy-connector)
+- **Default Loopback Endpoint**: `http://127.0.0.1:8108`
+- **Runtime Dependencies**: Zero external Python runtime packages (100% Python `stdlib`)
+- **License**: MIT (100% free and open-source)
 
 ---
 
-## ⚡ 8 Model Context Protocol (MCP) Tools
+## Overview
 
-When registered in `~/.gemini/config/mcp_config.json`, Antigravity gains immediate access to:
+`etsy-connector` bridges Etsy Open API v3 storefront operations with deterministic local auditing and print-on-demand payload synthesis:
 
-1. `etsy_search_listings`: Real-time competitor analysis, pricing, and tag discovery.
-2. `etsy_audit_listing_seo`: 13-tag (≤20 chars) and Title (≤140 chars) ranking algorithm auditor.
-3. `etsy_calculate_profit_margins`: Precise breakdown of Etsy fees, POD production costs, and net margin.
-4. `etsy_get_taxonomy_categories`: Etsy category taxonomy ID lookup.
-5. `etsy_create_draft_listing`: Programmatic draft listing generation.
-6. `etsy_upload_listing_image`: Multi-angle mockup and photo uploads.
-7. `etsy_get_shop_details`: Storefront metrics, reviews, and active inventory tracking.
-8. `etsy_generate_pod_payload`: 1-click Printify/Gelato product fulfillment JSON generator.
+- **13-Tag & Title SEO Auditor**: Evaluates listing titles (`<=140` chars), search tags (`13` tags, `<=20` chars each, duplicate detection), and descriptions against Etsy search ranking constraints.
+- **Fee & Net Margin Calculator**: Computes `$0.20` listing fees, `6.5%` transaction fees, `3% + $0.25` payment processing, optional `15%` Offsite Ads fees, POD base/shipping costs, net profit, and ROI.
+- **Etsy Open API v3 & OAuth 2.0 PKCE**: Supports PKCE authorization code exchange, `0600` credential storage (`~/.etsy_connector_config.json`), competitor keyword search, shop profile updates, and dry-run-by-default draft listing creation (`confirm=true` required for live writes).
+- **8-Tool MCP Server**: Exposes stdio JSON-RPC 2.0 tools for AI agents alongside a loopback HTTP cockpit on `127.0.0.1:8108`.
 
 ---
 
-## 🚀 Quick Start
+## Architecture
 
-### 1. Antigravity MCP Setup
-Add to `~/.gemini/config/mcp_config.json`:
+```text
+src/etsy_connector/
+├── client.py          # Stdlib Etsy Open API v3 client, OAuth 2.0 PKCE & simulation fallback
+├── seo_engine.py      # 140-char title / 13-tag SEO rank auditor & Etsy fee/margin calculator
+├── taxonomy.py        # Seller taxonomy category lookup for POD and digital goods
+├── pod_bridge.py      # Printify / Gelato fulfillment payload builder for Etsy listings
+├── mcp_server.py      # JSON-RPC 2.0 stdio MCP server exposing 8 Etsy & POD tools
+├── web_cockpit.py     # Loopback HTTP API + browser cockpit (127.0.0.1:8108)
+└── cli.py             # Unified CLI entrypoint (`etsy-connector`)
+```
+
+---
+
+## Quickstart
+
+```bash
+git clone https://github.com/1nc0gn30/etsy-connector.git
+cd etsy-connector
+python3 -m pip install -e .
+
+# Launch the loopback web cockpit on http://127.0.0.1:8108
+python3 server.py --host 127.0.0.1 --port 8108
+```
+
+Or run via the CLI entrypoint:
+
+```bash
+etsy-connector serve --host 127.0.0.1 --port 8108
+```
+
+---
+
+## CLI & MCP Usage
+
+### CLI Subcommands
+
+```bash
+# View CLI help
+etsy-connector --help
+
+# Audit a listing title and 13 search tags
+etsy-connector audit \
+  --title "Grandma Garden Sweatshirt, Custom Wildflower Crewneck, Personalized Gift" \
+  --tags "grandma sweatshirt,wildflower sweater,grandmas garden,custom crewneck,mom birthday gift,botanical shirt,plant lover gift,gift for grandma,grandkids names,mothers day gift,comfort colors tee,floral pullover,family tree shirt" \
+  --json
+
+# Calculate Etsy seller fees, POD base cost, and net profit margin
+etsy-connector profit --retail 34.99 --pod 12.80 --ads --json
+
+# Search active Etsy marketplace listings (uses deterministic simulation if unconfigured)
+etsy-connector search --keywords "wildflower sweatshirt" --limit 5 --json
+
+# Configure API credentials or run OAuth 2.0 PKCE authorization
+etsy-connector config --key "<ETSY_KEYSTRING>" --shop "<SHOP_ID>"
+etsy-connector auth --key "<ETSY_KEYSTRING>"
+
+# Create a draft digital listing (dry-run unless --confirm is passed)
+etsy-connector draft-digital --title "Printable Wall Art" --desc "300 DPI PDF" --price 6.99 --tags "wall art,printable pdf"
+
+# Launch the stdio MCP server
+etsy-connector mcp
+```
+
+### ZothOS v3.4.0 CLI Integration
+
+On ZothOS v3.4.0 workstations, `etsy-connector` and `etsy-connector-tui` are installed in `/usr/local/bin/`:
+
+```bash
+etsy-connector profit --retail 34.99 --pod 12.80 --json
+etsy-connector-tui --json
+etsy-connector serve --port 8108
+```
+
+### Model Context Protocol (MCP) Tools
+
 ```json
 {
   "mcpServers": {
     "etsy-connector": {
-      "command": "~/NullAITech/etsy-connector/bin/etsy-connector",
-      "args": ["mcp"],
-      "env": {
-        "PYTHONPATH": "~/NullAITech/etsy-connector/src"
-      }
+      "command": "etsy-connector",
+      "args": ["mcp"]
     }
   }
 }
 ```
 
-### 2. Run CLI Operations
-```bash
-# Calculate net margins for a $38.99 sweatshirt with $15.50 POD cost:
-./bin/etsy-connector profit --retail 38.99 --pod 15.50
-
-# Audit an Etsy listing title and tags:
-./bin/etsy-connector audit --title "Grandma Garden Sweatshirt" --tags "grandma gift,garden crewneck,floral sweater"
-
-# Launch Web Cockpit on port 8108:
-./bin/etsy-connector serve --port 8108
-```
-
----
-
-## 📜 Attribution & License
-Engineered by **1nc0gn30 • NullAI** ([@1nc0gn30](https://github.com/1nc0gn30)) • [NullAI Platform](https://nullai.tech)
-MIT License.
-
-## Network exposure
-
-The server binds to `127.0.0.1` by default. To reach it from other devices,
-opt in explicitly with `--host 0.0.0.0` (or set `ZOTH_BIND_HOST=0.0.0.0`; an IP
-in `HOST` is also honoured, a plain hostname is ignored) and only on a trusted
-network.
-
-## Safety
-
-- The browser API only accepts cross-origin requests from `localhost` / `127.0.0.1` pages. POSTs from any other website get `403`, and CORS echoes only local origins (never `*`), so a site you visit can't drive or read this local server. CLI and agent clients (no `Origin` header) are unaffected.
-- Credentials (`ETSY_API_KEY`, `ETSY_ACCESS_TOKEN`, or the cockpit form) are stored in `~/.etsy_connector_config.json` with owner-only `0600` permissions and are never returned by any endpoint.
-- **Live writes are dry runs by default.** With live credentials, `create-draft` (HTTP, MCP `etsy_create_draft_listing`) returns the payload it *would* send. Pass `"confirm": true`, or set `ETSY_ALLOW_LIVE_WRITES=1`, to really create the draft.
-- A failed live write (auth or network error) raises an error. It never falls back to a simulated "success" with a made-up `listing_id`. Reads may fall back to simulated data, flagged with `simulation: true` and a note.
+| MCP Tool | Description |
+| :--- | :--- |
+| `etsy_search_listings` | Search active Etsy listings for competitor pricing and keyword research |
+| `etsy_audit_listing_seo` | Audit title (`<=140` chars), 13 tags (`<=20` chars), and description |
+| `etsy_calculate_profit_margins` | Compute Etsy listing/transaction/processing/offsite-ad fees and net margin |
+| `etsy_get_taxonomy_categories` | Look up Etsy seller taxonomy IDs and keyword mappings |
+| `etsy_create_draft_listing` | Create a draft Etsy listing (dry-run unless `confirm=true`) |
+| `etsy_upload_listing_image` | Attach a mockup or artwork image to an Etsy listing |
+| `etsy_get_shop_details` | Retrieve shop profile, active listing count, and review score |
+| `etsy_generate_pod_payload` | Build a Printify/Gelato fulfillment payload linked to an Etsy blueprint |
 
 ---
 
-## 🏛️ ZothOS v3.4, Zoth Studio v2 & Obsidian Second Brain Ecosystem
+## HTTP API Reference
 
-```mermaid
-flowchart LR
-    subgraph ZothOS["🐧 ZothOS v3.4 CLI & Braille TUI"]
-        CLI["etsy-connector --help / --json"]
-        TUI["etsy-connector-tui<br/>Unicode U+2800 2x4 Braille"]
-    end
+When running on `http://127.0.0.1:8108`:
 
-    subgraph Workstation["⚡ Sovereign Workstation"]
-        WEB["http://127.0.0.1:8108<br/>REST API & /health"]
-    end
-
-    subgraph Studio["🌌 Zoth Studio v2 & ZothOS-Lite"]
-        GODMODE["http://127.0.0.1:3000/tools/etsy-connector<br/>God-Mode Workstation"]
-        LITE["http://127.0.0.1:8145<br/>ZothOS-Lite Web Desktop"]
-    end
-
-    subgraph SecondBrain["💎 Obsidian Second Brain & STDP"]
-        TRACKER["http://127.0.0.1:8151<br/>Zoth Obsidian Tracker"]
-        NEURO["http://127.0.0.1:8094<br/>Neuro-Memory STDP Cortex"]
-        NOTE["Studio/Tools/Studio etsy-connector.md"]
-    end
-
-    CLI --> WEB
-    TUI --> WEB
-    WEB <--> GODMODE
-    WEB <--> LITE
-    WEB --> TRACKER
-    TRACKER <--> NOTE
-    NOTE <--> NEURO
-```
-
-### Cross-Surface Integration Matrix
-
-| Surface | Endpoint / Binary | Capabilities |
+| Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **Standalone Workstation** | `http://127.0.0.1:8108` | 100% Free & Open-Access Web Deck, live `/health` & REST telemetry |
-| **Zoth Studio v2 Route** | `http://127.0.0.1:3000/tools/etsy-connector` | Interactive God-Mode component inside Zoth Studio (`https://zoth.nullai.tech`) |
-| **ZothOS v3.4 CLI & TUI** | `etsy-connector` / `etsy-connector-tui` | Global binary in `/usr/local/bin/` with Unicode `U+2800` Braille TUI & `--json` output |
-| **ZothOS-Lite Web Desktop** | `http://127.0.0.1:8145` | Browser-native KDE-style window manager & terminal launcher |
-| **Zoth Obsidian Tracker** | `http://127.0.0.1:8151` | Interactive Obsidian Second Brain vault explorer (`~/Documents/Obsidian Vault/Studio/Tools/Studio etsy-connector.md`) |
-| **Neuro-Memory STDP Cortex** | `http://127.0.0.1:8094` | 3-Factor STDP synaptic memory daemon & 21-tool MCP server |
+| `GET` | `/health`, `/api/health` | Service health status, port, configuration state, and uptime |
+| `GET` | `/api/stats` | Audit, profit calculation, search, and POD payload counters |
+| `GET` | `/api/taxonomy` | Supported Etsy seller taxonomy categories |
+| `GET` | `/api/blueprints` | POD product blueprints and print specifications |
+| `GET` | `/api/mcp/tools` | Registered MCP tool schemas |
+| `POST` | `/api/audit` | Run 13-tag and title SEO audit |
+| `POST` | `/api/profit` | Run Etsy fee and POD margin breakdown |
+| `POST` | `/api/search` | Search Etsy marketplace listings |
+| `POST` | `/api/pod` | Generate Printify/Gelato product creation JSON payload |
+| `POST` | `/api/create-draft` | Create draft Etsy listing (dry-run unless `confirm=true`) |
+| `POST` | `/api/credentials` | Save Etsy API key, OAuth token, and shop ID (`0600` permissions) |
+
+---
+
+## Testing & Verification
 
 ```bash
-# Inspect CLI & Unicode U+2800 Braille TUI on ZothOS v3.4
-etsy-connector --help
-etsy-connector-tui --status
-etsy-connector-tui --json
+# Run the pytest suite
+PYTHONPATH=src python3 -m pytest -q
 
-# Verify Second Brain Vault & 12-Step Verification Gallery on :8151
-zoth-obsidian-tracker --verify
+# Scan repository with gitleaks
+gitleaks detect --source . --no-banner --redact
 ```
 
+---
+
+## Support
+
+Etsy Connector is 100% free and open-source software. Optional community support is available via [Buy Us a Coffee (Stripe)](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X).
+
+## License
+
+MIT License — Copyright (c) 2026 [1nc0gn30](https://1nc0gn30.si) (`@1nc0gn30`) & [NullAI](https://nullai.tech). See [LICENSE](LICENSE) for full text.

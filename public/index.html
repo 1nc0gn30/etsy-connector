@@ -585,45 +585,12 @@
       }
     }
   </style>
-
-  <!-- Zoth 100% Open-Access & Buy Us a Coffee Invariant -->
-  <script id="zoth-open-access-init">
-    (function() {
-      try {
-        var keys = ['agent_audiocipher_pro', 'agent_cyber_turtle_pro', 'agent_datamosh_pro', 'agent_nexus3d_pro', 'agent_policy_pro', 'audiocipher_license', 'audiocipher_pro_licensed', 'badge3d_pro_licensed', 'certpath_pro_key', 'certpath_pro_licensed', 'cron_rhythm_pro_key', 'cron_rhythm_pro_licensed', 'cwv-speed-engine_pro_licensed', 'cwv_pro_licensed', 'cyber_turtle_pro_licensed', 'datamosh_pro_licensed', 'deepsearch-research-agent_pro_licensed', 'deepsearch_pro_licensed', 'entropy_studio_licensed', 'envguard-secrets-vault_pro_licensed', 'envguard_pro_license', 'etsy_connector_pro', 'jwt_guard_licensed', 'mdg_pro_licensed', 'neuro_pro_licensed', 'nexus3d_pro_licensed', 'omnipost_pro_key', 'omnipost_pro_licensed', 'osint_pro_licensed', 'payload-entropy-studio_pro_licensed', 'polyglot_pro_licensed', 'pro_licensed', 'promptmaster_pro_licensed', 'promptmaster_pro_active', 'robots-txt-auditor_pro_licensed', 'robots_pro_licensed', 'schema_illustrator_pro_licensed', 'sovereign_pro_licensed', 'subsweep-lead-scanner_pro_licensed', 'subsweep_licensed', 'turtle_pro_licensed', 'ufo_sacred_licensed', 'vector-search-engine_pro_licensed', 'vector_studio_pro_licensed', 'web-security-guard_pro_licensed', 'web_security_guard_licensed', 'yourdigitalspace_pro', 'zela_guide_pro_licensed', 'zoth_ascii_magic_pro', 'zoth_audiocipher_licensed', 'zoth_badge3d_licensed', 'zoth_cyber_turtle_licensed', 'zoth_datamosh_licensed', 'zoth_etsy_licensed', 'zoth_nexus3d_licensed', 'zoth_osint_licensed', 'zoth_policy_licensed', 'zoth_sacred_licensed', 'zoth_ufo_licensed'];
-        for (var i = 0; i < keys.length; i++) {
-          localStorage.setItem(keys[i], 'true');
-        }
-        localStorage.setItem('pm_license_v2', JSON.stringify({ method: 'open_access', ref: 'free_forever', at: '2026-01-01T00:00:00Z' }));
-        window.isPro = true;
-        window.isProLicensed = true;
-      } catch (e) {}
-    })();
-  </script>
-  <style id="zoth-open-access-override">
-    .paywall-overlay, .output-paywall-overlay, #outputPaywallOverlay, #schemaPaywallOverlay,
-    #transformerPaywallOverlay, #proPaywallModal, #licenseModal, #salesBanner, #founding-offer-banner,
-    #funnelHeroBanner, [data-alias="paywallOverlay"], [data-alias="founding-offer-banner"] {
-      display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-    .paywall-wrap #outputPreview, .paywall-wrap #reportContentArea, .paywall-content,
-    .paywall-content.locked, .paywall-wrap.is-locked #outputPreview, .paywall-wrap.locked #outputPreview {
-      filter: none !important;
-      -webkit-filter: none !important;
-      user-select: auto !important;
-      pointer-events: auto !important;
-    }
-  </style>
-
 </head>
 <body>
 
 <div id="zoth-coffee-support-bar" style="background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(212,175,55,0.14)); border-bottom: 1px solid rgba(212,175,55,0.35); padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; z-index: 9999;">
-  <span style="color: #10B981; font-weight: 800;">✦ 100% FREE &amp; OPEN ACCESS · ZERO PAYWALLS</span>
+  <span style="color: #10B981; font-weight: 800;">✦ 100% FREE &amp; OPEN-SOURCE WORKSTATION</span>
   <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer" style="background: #D4AF37; color: #08080B; padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">☕ Buy Us a Coffee (Stripe)</a>
-  <button type="button" id="btn-copy-solana" onclick="copySolanaAddress(this)" style="background: rgba(20,241,149,0.15); color: #14F195; border: 1px solid rgba(20,241,149,0.45); padding: 4px 12px; border-radius: 6px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-size: inherit;">◎ Tip Solana: GG2e...dXoK</button>
 </div>
 
 
@@ -785,7 +752,7 @@
               <button type="button" class="btn btn-gold" id="btn-export-matrix" style="padding: 4px 10px; font-size: 0.75rem;" onclick="exportBlueprintCsv()">↓ Export CSV</button>
             </div>
           </div>
-          <div id="podPaywall">
+          <div id="podPayloadWrap">
             <pre id="podJsonCode" style="font-family: var(--mono); font-size: 0.75rem; color: #38BDF8; background: #000; padding: 16px; border-radius: 8px;">
 {
   "blueprint_id": 49,
@@ -966,7 +933,7 @@
       }, 3500);
     }
 
-    // 100% Open Access Actions (Zero Paywalls)
+    // Open-Source Payload & CSV Export Actions
     function copyPrintifyPayload() {
       const text = document.getElementById('podJsonCode').textContent.trim();
       navigator.clipboard.writeText(text).then(() => {
@@ -999,58 +966,19 @@
       showToast('✓ Blueprint CSV Matrix downloaded!');
     }
 
-    // Direct fallback for triggerProAction
-    function triggerProAction(actionType) {
-      if (actionType === 'copy_payload') {
-        copyPrintifyPayload();
-      } else if (actionType === 'export_matrix') {
-        exportBlueprintCsv();
-      }
-    }
-
-    // Solana Tip Click-to-Copy (Zero Paywalls)
-    function copySolanaAddress(btn) {
-      const solanaAddress = 'GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK';
-      navigator.clipboard.writeText(solanaAddress).then(() => {
-        if (btn) {
-          const orig = btn.textContent;
-          btn.textContent = '✓ Solana Address Copied!';
-          setTimeout(() => { btn.textContent = orig; }, 2500);
-        }
-        showToast('✓ Solana Tip Address copied to clipboard!');
-      }).catch(() => {
-        window.open('solana:' + solanaAddress, '_blank');
-      });
-    }
-
-    // License Check (100% Free & Open Access)
-    function checkLicense() {
-      localStorage.setItem('etsy_connector_pro', 'true');
-      localStorage.setItem('zoth_etsy_licensed', 'true');
-      localStorage.setItem('pro_licensed', 'true');
-      document.body.classList.add('pro-licensed', 'pro-unlocked');
-      
-      const badge = document.getElementById('licenseBadge') || document.getElementById('pro-badge');
+    function initOpenAccessState() {
+      const badge = document.getElementById('licenseBadge');
       if (badge) {
-        badge.textContent = '✦ 100% FREE & OPEN ACCESS';
+        badge.textContent = '✦ OPEN SOURCE';
         badge.className = 'badge-pro';
       }
-
-      const banner = document.getElementById('salesBanner');
-      if (banner) banner.style.display = 'none';
-
-      const overlay = document.getElementById('podOverlay');
-      if (overlay) overlay.style.display = 'none';
-
-      const jsonCode = document.getElementById('podJsonCode');
-      if (jsonCode) jsonCode.classList.remove('blurred-content');
     }
 
     // Init
     runAudit();
     runProfit();
     updateBlueprint();
-    checkLicense();
+    initOpenAccessState();
   </script>
   
 
@@ -1061,7 +989,7 @@
         window.createSovereignTutorial({
           toolId: "etsy-connector",
           toolName: "Etsy Connector",
-          tagline: "Supercharge your online shop with AI keyword and ranking audits!",
+          tagline: "Optimize your Etsy storefront with 13-tag SEO and fee margin audits.",
           accentColor: "#F97316",
           steps: [{"icon": "\ud83d\udecd\ufe0f", "title": "Rank Higher on Etsy", "desc": "Helps shoppers find your items by testing your titles and search tags against Etsy's ranking algorithm."}, {"icon": "\ud83c\udff7\ufe0f", "title": "The 13-Tag Inspector", "desc": "Make sure you use all 13 tags without wasting space on repeats or banned words."}, {"icon": "\ud83d\udcb0", "title": "Instant Profit Margins", "desc": "Calculates Etsy seller fees and shipping costs so you know exactly how much money you take home."}]
         });
