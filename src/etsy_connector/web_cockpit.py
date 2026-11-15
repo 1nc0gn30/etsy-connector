@@ -97,7 +97,6 @@ class EtsyCockpitHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("X-Frame-Options", "SAMEORIGIN")
 
     def _send_json(self, status_code: int, data: Any) -> None:
         payload = json.dumps(data, indent=2).encode("utf-8")
