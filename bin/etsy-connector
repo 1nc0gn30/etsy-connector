@@ -7,6 +7,56 @@ Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
 
 from __future__ import annotations
 
+# zothos-json-manifest: deterministic machine-readable manifest for `etsy-connector --json`
+import sys as _zsys
+
+
+def _zoth_manifest_subs(_help):
+    for _line in (_help or "").splitlines():
+        if "{" not in _line or "}" not in _line:
+            continue
+        _inner = _line.split("{", 1)[1].split("}", 1)[0]
+        if "," not in _inner:
+            continue
+        _s = [x.strip() for x in _inner.split(",") if x.strip()]
+        if _s and all(x.replace("-", "").replace("_", "").isalnum() for x in _s):
+            return [x for x in _s if x != "help"]
+    return []
+
+
+def _zoth_manifest():
+    import json as _zj, subprocess as _zsp
+    _r = _zsp.run([_zsys.executable, _zsys.argv[0], "--help"],
+                  capture_output=True, text=True, timeout=60)
+    _subs = _zoth_manifest_subs((_r.stdout or "") + (_r.stderr or ""))
+    print(_zj.dumps({"tool": 'etsy-connector', "ok": True, "kind": "json-manifest",
+                     "version": '0.1.0', "local_port": 8108, "execution_type": 'browser',
+                     "studio_route": "/tools/" + 'etsy-connector', "entry": __file__,
+                     "commands": _subs,
+                     "usage": "run `etsy-connector --help`" + ("; subcommands: " + ", ".join(_subs) if _subs else "")},
+                    indent=2, sort_keys=True))
+    raise SystemExit(0)
+
+
+if _zsys.argv[1:] == ["--json"]:
+    _zoth_manifest()
+# zothos-json-manifest-end
+
+
+
+
+
+
+# zothos-repo-shim: run the canonical repo copy so repo-relative paths resolve
+import os as _os, sys as _sys
+_here = _os.path.realpath(__file__)
+_repo = _os.environ.get("ZOTH_REPO_DIR") or '/home/zoth/NullAITech' + "/" + 'etsy-connector'
+_real = _os.path.join(_repo, "bin", 'etsy-connector')
+if _os.path.exists(_real) and _os.path.realpath(_real) != _here:
+    _os.execv(_sys.executable, [_sys.executable, _real] + _sys.argv[1:])
+del _os, _sys, _here, _repo, _real
+
+
 import os
 import sys
 from pathlib import Path
