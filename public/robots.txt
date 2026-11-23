@@ -4,17 +4,22 @@ Crawl-delay: 0
 
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
 User-agent: GPTBot
 Allow: /
+Crawl-delay: 0
 
 User-agent: ClaudeBot
 Allow: /
+Crawl-delay: 0
 
 User-agent: PerplexityBot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Applebot
 Allow: /
+Crawl-delay: 0
 
 Sitemap: https://etsy.nullai.tech/sitemap.xml

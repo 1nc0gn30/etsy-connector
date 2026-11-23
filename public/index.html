@@ -36,7 +36,7 @@
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "WebApplication",
+        "@type": ["WebApplication", "SoftwareApplication"],
         "name": "Etsy Connector for Antigravity",
         "url": "https://etsy.nullai.tech/",
         "applicationCategory": "BusinessApplication",
@@ -203,7 +203,7 @@
       align-items: center;
     }
 
-    .badge-pro {
+    .badge-open {
       background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(16, 185, 129, 0.2));
       color: #FBBF24;
       border: 1px solid #F59E0B;
@@ -610,7 +610,7 @@
         </div>
       </a>
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <span class="badge-pro" id="licenseBadge" data-alias="proStatusBadge" data-alt-id="pro-badge">✦ 100% FREE &amp; OPEN ACCESS</span>
+        <span class="badge-open" id="openAccessBadge">✦ 100% FREE &amp; OPEN ACCESS</span>
         <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="min-height: 34px; padding: 4px 12px; font-size: 0.75rem; text-decoration: none;">☕ Buy Us a Coffee</a>
       </div>
     </div>
@@ -973,10 +973,10 @@
     }
 
     function initOpenAccessState() {
-      const badge = document.getElementById('licenseBadge');
+      const badge = document.getElementById('openAccessBadge');
       if (badge) {
         badge.textContent = '✦ OPEN SOURCE';
-        badge.className = 'badge-pro';
+        badge.className = 'badge-open';
       }
     }
 
