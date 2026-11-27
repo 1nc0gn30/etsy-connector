@@ -1,6 +1,6 @@
 """Etsy Open API v3 Client with Resilient Simulation Mode.
 
-Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
 100% Python Standard Library — Zero External Dependencies.
 """
 
@@ -8,17 +8,53 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from .taxonomy import find_taxonomy, get_taxonomy_categories
+from . import __version__
 
 CONFIG_PATH = Path.home() / ".etsy_connector_config.json"
+DEFAULT_REDIRECT_URI = "http://127.0.0.1:8108/oauth/callback"
+USER_AGENT = f"AntigravityEtsyConnector/{__version__}"
+
+_EXT_MIME_MAP = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+    ".pdf": "application/pdf",
+    ".zip": "application/zip",
+}
+
+
+def _quote_path_segment(value: Any, label: str) -> str:
+    """Validate and URL-quote a path segment (shop_id or listing_id)."""
+    raw = str(value or "").strip()
+    if not raw:
+        raise ValueError(f"{label} cannot be empty")
+    if any(ch in raw for ch in ("/", "\\", "\r", "\n", "\x00")) or ".." in raw:
+        raise ValueError(f"Invalid {label}: contains disallowed path characters")
+    return urllib.parse.quote(raw, safe="")
+
+
+def _sanitize_filename(filename: str) -> str:
+    """Sanitize a filename for safe HTTP Content-Disposition header inclusion."""
+    base = os.path.basename(str(filename or "upload.bin"))
+    cleaned = re.sub(r'["\\\r\n\x00/]', "_", base).strip()
+    return cleaned or "upload.bin"
+
+
+def _detect_mime_type(file_path: str, default: str = "application/octet-stream") -> str:
+    """Infer MIME type strictly from file extension."""
+    ext = Path(file_path).suffix.lower()
+    return _EXT_MIME_MAP.get(ext, default)
 
 
 class EtsyClient:
@@ -31,13 +67,11 @@ class EtsyClient:
         shop_id: Optional[str] = None,
         simulate: Optional[bool] = None,
     ) -> None:
-        # Load from arguments, env vars, or local config
         config = self._load_config()
         self.api_key = api_key or os.environ.get("ETSY_API_KEY") or config.get("api_key", "")
         self.access_token = access_token or os.environ.get("ETSY_ACCESS_TOKEN") or config.get("access_token", "")
         self.shop_id = shop_id or os.environ.get("ETSY_SHOP_ID") or config.get("shop_id", "")
 
-        # If simulate not explicitly given, simulate if credentials are missing
         if simulate is not None:
             self.simulate = simulate
         else:
@@ -60,11 +94,11 @@ class EtsyClient:
         shop_id: str,
         refresh_token: Optional[str] = None,
     ) -> None:
-        """Persist API credentials to user config file without losing refresh_token."""
+        """Persist API credentials to user config file (atomic 0600)."""
         existing = self._load_config()
         self.api_key = str(api_key).strip()
         self.access_token = str(access_token).strip()
-        self.shop_id = str(shop_id).strip()
+        self.shop_id = str(shop_id).strip() or "me"
         self.simulate = not (self.api_key and self.access_token)
         existing.update(
             {
@@ -77,7 +111,6 @@ class EtsyClient:
         if refresh_token:
             existing["refresh_token"] = str(refresh_token).strip()
         data = json.dumps(existing, indent=2)
-        # Owner-only (0600) and atomic: credentials must not be world-readable.
         tmp = CONFIG_PATH.with_name(CONFIG_PATH.name + ".tmp")
         fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -107,7 +140,7 @@ class EtsyClient:
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json",
-                "User-Agent": "AntigravityEtsyConnector/0.1.0",
+                "User-Agent": USER_AGENT,
             },
             method="POST",
         )
@@ -119,7 +152,7 @@ class EtsyClient:
         self.save_credentials(
             api_key=self.api_key or cfg.get("api_key", client_id),
             access_token=new_access,
-            shop_id=str(self.shop_id or cfg.get("shop_id", "68503004")),
+            shop_id=str(self.shop_id or cfg.get("shop_id") or os.environ.get("ETSY_SHOP_ID") or "me"),
             refresh_token=new_refresh,
         )
         return token_data
@@ -149,7 +182,7 @@ class EtsyClient:
             "x-api-key": self.api_key,
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
-            "User-Agent": "AntigravityEtsyConnector/0.1.0",
+            "User-Agent": USER_AGENT,
         }
 
         req = urllib.request.Request(url, data=data, headers=headers, method=method)
@@ -159,14 +192,16 @@ class EtsyClient:
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8", errors="ignore")
-            # Reads may fall back to clearly-flagged simulated data; writes must
-            # never report a fake success (e.g. a made-up listing_id).
             if e.code in (401, 403) and method == "GET":
-                return self._simulate_response(endpoint, method, params, payload, note=f"Live API error ({e.code}); fell back to simulation.")
+                return self._simulate_response(
+                    endpoint, method, params, payload, note=f"Live API error ({e.code}); fell back to simulation."
+                )
             raise RuntimeError(f"Etsy API HTTP {e.code}: {err_body[:500]}")
         except Exception as e:
             if method == "GET":
-                return self._simulate_response(endpoint, method, params, payload, note=f"Network error ({type(e).__name__}); fell back to simulation.")
+                return self._simulate_response(
+                    endpoint, method, params, payload, note=f"Network error ({type(e).__name__}); fell back to simulation."
+                )
             raise RuntimeError(f"Etsy API request failed ({type(e).__name__}); nothing was created.") from None
 
     def _simulate_response(
@@ -177,11 +212,10 @@ class EtsyClient:
         payload: Optional[Dict[str, Any]] = None,
         note: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Generate high-fidelity simulated response for testing and offline development."""
+        """Generate deterministic simulated responses for testing and offline development."""
         sim_id = f"etsy_sim_{uuid.uuid4().hex[:8]}"
 
         if "/shops/" in endpoint and endpoint.endswith("/listings"):
-            # Create listing simulation
             p = payload or {}
             return {
                 "simulation": True,
@@ -190,7 +224,7 @@ class EtsyClient:
                 "title": p.get("title", "Simulated Etsy Listing"),
                 "description": p.get("description", ""),
                 "state": "draft",
-                "price": {"amount": int((p.get("price", 34.99) or 34.99) * 100), "divisor": 100, "currency_code": "USD"},
+                "price": {"amount": int(round((p.get("price", 34.99) or 34.99) * 100)), "divisor": 100, "currency_code": "USD"},
                 "quantity": p.get("quantity", 999),
                 "tags": p.get("tags", []),
                 "taxonomy_id": p.get("taxonomy_id", 1099),
@@ -200,14 +234,13 @@ class EtsyClient:
             }
 
         if "/listings/active" in endpoint:
-            # Search active listings simulation
             kw = (params or {}).get("keywords", "wildflower sweatshirt")
             mock_results = [
                 {
                     "listing_id": 1782349011,
-                    "title": f"Grandma's Garden Wildflower Sweatshirt, Cozy Cottagecore Gift, Floral Embroidered Print Crewneck",
+                    "title": "Botanical Wildflower Embroidered Crewneck Sweatshirt, Cozy Cottagecore Gift, Heavy Blend Pullover",
                     "price": {"amount": 3699, "divisor": 100, "currency_code": "USD"},
-                    "tags": ["grandma sweatshirt", "garden crewneck", "cottagecore gift", "wildflower shirt", "mothers day gift", "comfort colors 1717", "plant lover gift"],
+                    "tags": ["wildflower crewneck", "garden sweatshirt", "cottagecore gift", "botanical shirt", "mothers day gift", "comfort colors 1717", "plant lover gift"],
                     "views": 4820,
                     "num_favorers": 1240,
                     "shop_name": "BotanicalHavenPrints",
@@ -215,9 +248,9 @@ class EtsyClient:
                 },
                 {
                     "listing_id": 1782349012,
-                    "title": f"Vintage Songbird Watercolor Ceramic Coffee Mug 15oz, Backyard Birdwatcher Tea Cup, Country Kitchen Decor",
+                    "title": "Vintage Songbird Watercolor Ceramic Coffee Mug 15oz, Backyard Birdwatcher Tea Cup, Country Kitchen Decor",
                     "price": {"amount": 2199, "divisor": 100, "currency_code": "USD"},
-                    "tags": ["songbird mug", "birdwatcher gift", "watercolor tea cup", "chickadee ceramic", "grandma coffee cup", "cottagecore mug"],
+                    "tags": ["songbird mug", "birdwatcher gift", "watercolor tea cup", "ceramic mug 15oz", "coffee lover gift", "botanical mug"],
                     "views": 2910,
                     "num_favorers": 820,
                     "shop_name": "MorningMeadowStudio",
@@ -225,30 +258,30 @@ class EtsyClient:
                 },
                 {
                     "listing_id": 1782349013,
-                    "title": f"Heavyweight Canvas Farmers Market Tote Bag, French Lavender & Herb Botanical Grocery Bag, Library Book Tote",
+                    "title": "Heavyweight Canvas Farmers Market Tote Bag, French Lavender & Herb Botanical Grocery Bag, Library Book Tote",
                     "price": {"amount": 2499, "divisor": 100, "currency_code": "USD"},
-                    "tags": ["canvas tote bag", "farmers market", "lavender tote", "french botanical", "library tote", "cottagecore bag"],
+                    "tags": ["canvas tote bag", "farmers market", "lavender tote", "french botanical", "library tote", "eco market bag"],
                     "views": 1840,
                     "num_favorers": 490,
                     "shop_name": "HeirloomLivingCo",
                     "rating": 4.92,
                 },
             ]
+            limit = max(1, min(int((params or {}).get("limit", 10)), 100))
             return {
                 "simulation": True,
-                "count": len(mock_results),
-                "results": mock_results,
+                "count": len(mock_results[:limit]),
+                "results": mock_results[:limit],
                 "keywords": kw,
                 "note": note or "Simulated Etsy search results for competitor & niche keyword intelligence.",
             }
 
         if "/shops/" in endpoint:
-            # Shop info simulation
             return {
                 "simulation": True,
-                "shop_id": self.shop_id or "99882211",
-                "shop_name": "GrandmasGardenPrints",
-                "title": "Cozy Botanical Apparel, Songbird Mugs & Nostalgic Gifts",
+                "shop_id": self.shop_id or "me",
+                "shop_name": "SampleBotanicalShop",
+                "title": "Botanical Apparel, Ceramic Mugs & Printable Wall Art",
                 "currency_code": "USD",
                 "listing_active_count": 28,
                 "digital_listing_count": 12,
@@ -268,7 +301,7 @@ class EtsyClient:
 
     def get_shop(self, shop_id: Optional[str] = None) -> Dict[str, Any]:
         """Fetch shop details from Etsy Open API v3."""
-        target_shop = shop_id or self.shop_id or "me"
+        target_shop = _quote_path_segment(shop_id or self.shop_id or "me", "shop_id")
         return self._request(f"/shops/{target_shop}")
 
     def search_listings(
@@ -279,7 +312,7 @@ class EtsyClient:
         max_price: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Search active Etsy listings for competitor analysis, keywords, and prices."""
-        params: Dict[str, Any] = {"keywords": keywords, "limit": max(1, min(limit, 100))}
+        params: Dict[str, Any] = {"keywords": keywords, "limit": max(1, min(int(limit), 100))}
         if min_price is not None:
             params["min_price"] = min_price
         if max_price is not None:
@@ -293,30 +326,26 @@ class EtsyClient:
         price: float,
         quantity: int = 999,
         tags: Optional[List[str]] = None,
-        taxonomy_id: int = 2078,
+        taxonomy_id: int = 1099,
         who_made: str = "i_did",
         when_made: str = "2020_2026",
         is_supply: bool = False,
         listing_type: str = "download",
         confirm: bool = False,
     ) -> Dict[str, Any]:
-        """Create a draft listing on Etsy (defaults to type='download' for instant digital goods).
-
-        With live credentials this writes to the real shop, so it is a dry run
-        (returns the payload, sends nothing) unless ``confirm=True`` or
-        ``ETSY_ALLOW_LIVE_WRITES=1``."""
-        target_shop = self.shop_id or "me"
+        """Create a draft listing on Etsy (dry-run by default when live credentials exist)."""
+        target_shop = _quote_path_segment(self.shop_id or "me", "shop_id")
         payload = {
-            "quantity": quantity,
-            "title": title[:140],
-            "description": description,
-            "price": price,
+            "quantity": int(quantity),
+            "title": str(title)[:140],
+            "description": str(description),
+            "price": round(float(price), 2),
             "who_made": who_made,
             "when_made": when_made,
-            "taxonomy_id": taxonomy_id,
-            "is_supply": is_supply,
+            "taxonomy_id": int(taxonomy_id),
+            "is_supply": bool(is_supply),
             "type": listing_type,
-            "tags": (tags or [])[:13],
+            "tags": [str(t)[:20] for t in (tags or [])][:13],
             "state": "draft",
         }
         if not self.simulate and not (confirm or os.environ.get("ETSY_ALLOW_LIVE_WRITES") == "1"):
@@ -339,7 +368,7 @@ class EtsyClient:
         confirm: bool = False,
     ) -> Dict[str, Any]:
         """Update Etsy shop metadata via PUT /v3/application/shops/{shop_id}."""
-        target_shop = self.shop_id or "me"
+        target_shop = _quote_path_segment(self.shop_id or "me", "shop_id")
         payload: Dict[str, Any] = {}
         if title is not None:
             payload["title"] = title
@@ -362,6 +391,7 @@ class EtsyClient:
         if not (confirm or os.environ.get("ETSY_ALLOW_LIVE_WRITES") == "1"):
             return {
                 "dry_run": True,
+                "simulation": False,
                 "status": "not_sent",
                 "endpoint": f"PUT /shops/{target_shop}",
                 "payload": payload,
@@ -380,17 +410,18 @@ class EtsyClient:
         boundary = f"----AntigravityEtsyBoundary{uuid.uuid4().hex}"
         body = bytearray()
         for k, v in (extra_fields or {}).items():
+            safe_k = _sanitize_filename(k)
             body.extend(f"--{boundary}\r\n".encode("utf-8"))
-            body.extend(f'Content-Disposition: form-data; name="{k}"\r\n\r\n'.encode("utf-8"))
+            body.extend(f'Content-Disposition: form-data; name="{safe_k}"\r\n\r\n'.encode("utf-8"))
             body.extend(f"{v}\r\n".encode("utf-8"))
 
-        filename = os.path.basename(file_path)
+        filename = _sanitize_filename(file_path)
         with open(file_path, "rb") as f:
             file_bytes = f.read()
 
         body.extend(f"--{boundary}\r\n".encode("utf-8"))
         body.extend(
-            f'Content-Disposition: form-data; name="{file_field}"; filename="{filename}"\r\n'.encode("utf-8")
+            f'Content-Disposition: form-data; name="{_sanitize_filename(file_field)}"; filename="{filename}"\r\n'.encode("utf-8")
         )
         body.extend(f"Content-Type: {mime_type}\r\n\r\n".encode("utf-8"))
         body.extend(file_bytes)
@@ -401,7 +432,7 @@ class EtsyClient:
             "x-api-key": self.api_key,
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": f"multipart/form-data; boundary={boundary}",
-            "User-Agent": "AntigravityEtsyConnector/0.1.0",
+            "User-Agent": USER_AGENT,
         }
         req = urllib.request.Request(url, data=bytes(body), headers=headers, method="POST")
         with urllib.request.urlopen(req, timeout=30.0) as resp:
@@ -413,25 +444,44 @@ class EtsyClient:
         image_path: str,
         rank: int = 1,
         alt_text: Optional[str] = None,
+        confirm: bool = False,
     ) -> Dict[str, Any]:
-        """Upload product mockup or design image to Etsy listing."""
+        """Upload product mockup or design image to Etsy listing (dry-run by default in live mode)."""
+        safe_listing = _quote_path_segment(listing_id, "listing_id")
+        target_shop = _quote_path_segment(self.shop_id or "me", "shop_id")
+        mime_type = _detect_mime_type(image_path, default="image/png")
+        safe_name = _sanitize_filename(image_path)
+
         if self.simulate or not self.is_configured():
             return {
                 "simulation": True,
                 "status": "uploaded",
-                "listing_id": listing_id,
+                "listing_id": safe_listing,
                 "image_id": f"img_{uuid.uuid4().hex[:8]}",
-                "rank": rank,
-                "url_570xN": f"https://i.etsystatic.com/simulated/{listing_id}_570xN.jpg",
-                "url_fullxfull": f"https://i.etsystatic.com/simulated/{listing_id}_fullxfull.jpg",
+                "filename": safe_name,
+                "mime_type": mime_type,
+                "rank": int(rank),
+                "url_570xN": f"https://i.etsystatic.com/simulated/{safe_listing}_570xN.jpg",
+                "url_fullxfull": f"https://i.etsystatic.com/simulated/{safe_listing}_fullxfull.jpg",
             }
 
-        target_shop = self.shop_id or "me"
-        endpoint = f"/shops/{target_shop}/listings/{listing_id}/images"
-        fields = {"rank": str(rank)}
+        endpoint = f"/shops/{target_shop}/listings/{safe_listing}/images"
+        fields = {"rank": str(int(rank))}
         if alt_text:
-            fields["alt_text"] = alt_text[:250]
-        return self._multipart_upload(endpoint, "image", image_path, "image/png", fields)
+            fields["alt_text"] = str(alt_text)[:250]
+
+        if not (confirm or os.environ.get("ETSY_ALLOW_LIVE_WRITES") == "1"):
+            return {
+                "dry_run": True,
+                "simulation": False,
+                "status": "not_sent",
+                "message": "Live credentials present: pass confirm=true (or set ETSY_ALLOW_LIVE_WRITES=1) to upload this image to Etsy.",
+                "endpoint": f"POST {endpoint}",
+                "filename": safe_name,
+                "mime_type": mime_type,
+                "fields": fields,
+            }
+        return self._multipart_upload(endpoint, "image", image_path, mime_type, fields)
 
     def upload_listing_file(
         self,
@@ -439,29 +489,46 @@ class EtsyClient:
         file_path: str,
         name: Optional[str] = None,
         rank: int = 1,
+        confirm: bool = False,
     ) -> Dict[str, Any]:
-        """Upload instant digital download file (PDF, ZIP, PNG) to an Etsy listing."""
-        filename = name or os.path.basename(file_path)
+        """Upload instant digital download file (PDF, ZIP, PNG) to an Etsy listing (dry-run by default in live mode)."""
+        safe_listing = _quote_path_segment(listing_id, "listing_id")
+        target_shop = _quote_path_segment(self.shop_id or "me", "shop_id")
+        filename = _sanitize_filename(name or os.path.basename(file_path))
+        mime_type = _detect_mime_type(file_path, default="application/octet-stream")
+
         if self.simulate or not self.is_configured():
             return {
                 "simulation": True,
                 "status": "uploaded",
-                "listing_id": listing_id,
+                "listing_id": safe_listing,
                 "listing_file_id": int(time.time() % 1000000),
                 "filename": filename,
-                "rank": rank,
+                "mime_type": mime_type,
+                "rank": int(rank),
                 "note": "Simulated digital download attachment uploaded.",
             }
 
-        target_shop = self.shop_id or "me"
-        endpoint = f"/shops/{target_shop}/listings/{listing_id}/files"
-        fields = {"name": filename, "rank": str(rank)}
-        return self._multipart_upload(endpoint, "file", file_path, "application/octet-stream", fields)
+        endpoint = f"/shops/{target_shop}/listings/{safe_listing}/files"
+        fields = {"name": filename, "rank": str(int(rank))}
+
+        if not (confirm or os.environ.get("ETSY_ALLOW_LIVE_WRITES") == "1"):
+            return {
+                "dry_run": True,
+                "simulation": False,
+                "status": "not_sent",
+                "message": "Live credentials present: pass confirm=true (or set ETSY_ALLOW_LIVE_WRITES=1) to upload this file to Etsy.",
+                "endpoint": f"POST {endpoint}",
+                "filename": filename,
+                "mime_type": mime_type,
+                "fields": fields,
+            }
+        return self._multipart_upload(endpoint, "file", file_path, mime_type, fields)
 
     @staticmethod
     def generate_oauth_pkce(
         api_key: str,
-        redirect_uri: str = "https://metadigitalgoods.nullai.tech/oauth/callback/",
+        redirect_uri: Optional[str] = None,
         scopes: str = "listings_r listings_w shops_r shops_w transactions_r",
     ) -> Dict[str, str]:
         """Generate OAuth 2.0 PKCE verifier, challenge, and authorization URL for Etsy API v3."""
@@ -469,6 +536,11 @@ class EtsyClient:
         import hashlib
         import secrets
 
+        resolved_redirect = (
+            redirect_uri
+            or os.environ.get("ETSY_REDIRECT_URI")
+            or DEFAULT_REDIRECT_URI
+        ).strip()
         client_id = api_key.split(":")[0].strip()
         verifier = secrets.token_urlsafe(32)
         digest = hashlib.sha256(verifier.encode("ascii")).digest()
@@ -478,7 +550,7 @@ class EtsyClient:
         params = urllib.parse.urlencode(
             {
                 "response_type": "code",
-                "redirect_uri": redirect_uri,
+                "redirect_uri": resolved_redirect,
                 "scope": scopes,
                 "client_id": client_id,
                 "state": state,
@@ -491,11 +563,10 @@ class EtsyClient:
             "code_verifier": verifier,
             "code_challenge": challenge,
             "state": state,
-            "redirect_uri": redirect_uri,
+            "redirect_uri": resolved_redirect,
             "client_id": client_id,
         }
-        # Persist verifier & api_key so token exchange is 1-step
-        existing = {}
+        existing: Dict[str, Any] = {}
         if CONFIG_PATH.exists():
             try:
                 existing = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
@@ -506,9 +577,9 @@ class EtsyClient:
                 "api_key": api_key.strip(),
                 "client_id": client_id,
                 "code_verifier": verifier,
-                "redirect_uri": redirect_uri,
+                "redirect_uri": resolved_redirect,
                 "state": state,
-                "shop_id": existing.get("shop_id", "metadigitalgoods"),
+                "shop_id": existing.get("shop_id") or os.environ.get("ETSY_SHOP_ID") or "me",
                 "updated_at": time.time(),
             }
         )
@@ -520,12 +591,22 @@ class EtsyClient:
         os.replace(tmp, CONFIG_PATH)
         return result
 
-    def exchange_oauth_code(self, code: str, code_verifier: Optional[str] = None, redirect_uri: Optional[str] = None) -> Dict[str, Any]:
+    def exchange_oauth_code(
+        self,
+        code: str,
+        code_verifier: Optional[str] = None,
+        redirect_uri: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Exchange OAuth 2.0 authorization code for an Etsy access_token and refresh_token."""
         cfg = self._load_config()
         client_id = (self.api_key or cfg.get("api_key", "")).split(":")[0].strip()
         verifier = code_verifier or cfg.get("code_verifier", "")
-        redirect = redirect_uri or cfg.get("redirect_uri", "https://metadigitalgoods.nullai.tech/oauth/callback/")
+        redirect = (
+            redirect_uri
+            or cfg.get("redirect_uri")
+            or os.environ.get("ETSY_REDIRECT_URI")
+            or DEFAULT_REDIRECT_URI
+        )
 
         if not client_id or not verifier:
             raise ValueError("Missing client_id or code_verifier. Run 'etsy-connector auth --key <KEY>' first.")
@@ -546,7 +627,7 @@ class EtsyClient:
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json",
-                "User-Agent": "AntigravityEtsyConnector/0.1.0",
+                "User-Agent": USER_AGENT,
             },
             method="POST",
         )
@@ -555,16 +636,10 @@ class EtsyClient:
 
         access_token = token_data.get("access_token", "")
         refresh_tok = token_data.get("refresh_token", "")
-        cfg["access_token"] = access_token
-        cfg["refresh_token"] = refresh_tok
-        cfg["expires_in"] = token_data.get("expires_in", 3600)
-        cfg["updated_at"] = time.time()
         self.save_credentials(
             api_key=cfg.get("api_key", client_id),
             access_token=access_token,
-            shop_id=str(cfg.get("shop_id", "68503004")),
+            shop_id=str(cfg.get("shop_id") or os.environ.get("ETSY_SHOP_ID") or "me"),
             refresh_token=refresh_tok,
         )
         return token_data
-
-

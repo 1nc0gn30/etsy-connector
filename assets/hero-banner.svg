@@ -1,56 +1,53 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="100%" height="100%">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06070B"/>
-      <stop offset="50%" stop-color="#0C101B"/>
-      <stop offset="100%" stop-color="#07080E"/>
+      <stop offset="0%" stop-color="#0B0D12"/>
+      <stop offset="50%" stop-color="#131722"/>
+      <stop offset="100%" stop-color="#0B0D12"/>
     </linearGradient>
     <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D4AF37"/>
-      <stop offset="100%" stop-color="#38BDF8"/>
+      <stop offset="0%" stop-color="#E8C46A"/>
+      <stop offset="100%" stop-color="#EA580C"/>
     </linearGradient>
     <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
       <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
     </pattern>
   </defs>
 
-  <rect width="1200" height="320" rx="18" fill="url(#bg)" stroke="#D4AF37" stroke-opacity="0.5" stroke-width="1.5"/>
+  <rect width="1200" height="320" rx="18" fill="url(#bg)" stroke="#E8C46A" stroke-opacity="0.5" stroke-width="1.5"/>
   <rect width="1200" height="320" rx="18" fill="url(#grid)"/>
 
-  <!-- Emblem -->
   <g transform="translate(52, 48)">
-    <rect width="78" height="78" rx="18" fill="url(#accent)" opacity="0.92"/>
-    <polygon points="39,14 62,27 62,51 39,64 16,51 16,27" fill="#08080B" stroke="#FFFFFF" stroke-width="2"/>
-    <circle cx="39" cy="39" r="7" fill="#D4AF37"/>
+    <rect width="78" height="78" rx="18" fill="url(#accent)" opacity="0.95"/>
+    <polygon points="39,14 62,27 62,51 39,64 16,51 16,27" fill="#0B0D12" stroke="#F4EFE6" stroke-width="2"/>
+    <circle cx="39" cy="39" r="7" fill="#E8C46A"/>
   </g>
 
-  <!-- Header Copy -->
   <g transform="translate(152, 62)">
-    <rect x="0" y="-14" width="420" height="22" rx="11" fill="rgba(255,255,255,0.06)" stroke="#D4AF37" stroke-opacity="0.45"/>
-    <text x="12" y="1" fill="#D4AF37" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" letter-spacing="1.1">SOVEREIGN // NULLAI ENGINE // PORT :8108</text>
-    <text x="0" y="34" fill="#FFFFFF" font-family="Syne, Space Grotesk, sans-serif" font-size="30" font-weight="800" letter-spacing="0.4">ETSY CONNECTOR</text>
-    <text x="0" y="60" fill="#94A3B8" font-family="Inter, sans-serif" font-size="13.5">Etsy Open API v3 and Antigravity MCP bridge with 13-tag SEO auditor and fee calculator.</text>
+    <rect x="0" y="-14" width="460" height="22" rx="11" fill="rgba(255,255,255,0.06)" stroke="#E8C46A" stroke-opacity="0.45"/>
+    <text x="12" y="1" fill="#E8C46A" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" letter-spacing="1.1">ETSY CONNECTOR v2.6.0 // LOOPBACK :8108 // 8 MCP TOOLS</text>
+    <text x="0" y="34" fill="#F4EFE6" font-family="system-ui, -apple-system, sans-serif" font-size="30" font-weight="800" letter-spacing="0.4">ETSY CONNECTOR</text>
+    <text x="0" y="60" fill="#CBD5E1" font-family="system-ui, -apple-system, sans-serif" font-size="13.5">Open API v3 · 13-Tag SEO Auditor · 0%/12%/15% Fee Engine · Printify &amp; Gelato POD · 8 MCP Tools</text>
   </g>
 
-  <!-- 3 Feature Cards -->
   <g transform="translate(52, 168)">
-    <rect x="0" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#D4AF37" stroke-opacity="0.38"/>
-    <text x="18" y="30" fill="#D4AF37" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">PILLAR 01 // CAPABILITY</text>
-    <text x="18" y="56" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">Zero-Egress Client Enclave</text>
-    <text x="18" y="78" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">Verified Client &amp; Enclave Runtime</text>
+    <rect x="0" y="0" width="352" height="98" rx="12" fill="#131722" stroke="#E8C46A" stroke-opacity="0.38"/>
+    <text x="18" y="30" fill="#E8C46A" font-family="ui-monospace, monospace" font-size="10" font-weight="700">PILLAR 01 // SEO &amp; MARGINS</text>
+    <text x="18" y="56" fill="#F4EFE6" font-family="system-ui, sans-serif" font-size="14" font-weight="700">13-Tag Auditor &amp; 12%/15% Fees</text>
+    <text x="18" y="78" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5">Title 140c · Tags 20c · Break-Even Price</text>
 
-    <rect x="372" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#38BDF8" stroke-opacity="0.38"/>
-    <text x="390" y="30" fill="#38BDF8" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">PILLAR 02 // ARCHITECTURE</text>
-    <text x="390" y="56" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">Real-Time Telemetry &amp; AST</text>
-    <text x="390" y="78" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">Mode: BROWSER • Port :8108</text>
+    <rect x="372" y="0" width="352" height="98" rx="12" fill="#131722" stroke="#FDBA74" stroke-opacity="0.38"/>
+    <text x="390" y="30" fill="#FDBA74" font-family="ui-monospace, monospace" font-size="10" font-weight="700">PILLAR 02 // POD BRIDGE</text>
+    <text x="390" y="56" fill="#F4EFE6" font-family="system-ui, sans-serif" font-size="14" font-weight="700">Printify &amp; Gelato Payloads</text>
+    <text x="390" y="78" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5">Blueprints 638/49/68/611 · Gelato v4 UIDs</text>
 
-    <rect x="744" y="0" width="352" height="98" rx="12" fill="#101320" stroke="#D4AF37" stroke-opacity="0.38"/>
-    <text x="762" y="30" fill="#D4AF37" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">PILLAR 03 // ECOSYSTEM</text>
-    <text x="762" y="56" fill="#FFFFFF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="700">Zoth Studio &amp; ZothOS Native</text>
-    <text x="762" y="78" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">Zoth Studio v2 (:3000) &amp; ZothOS v3.3</text>
+    <rect x="744" y="0" width="352" height="98" rx="12" fill="#131722" stroke="#E8C46A" stroke-opacity="0.38"/>
+    <text x="762" y="30" fill="#E8C46A" font-family="ui-monospace, monospace" font-size="10" font-weight="700">PILLAR 03 // ECOSYSTEM</text>
+    <text x="762" y="56" fill="#F4EFE6" font-family="system-ui, sans-serif" font-size="14" font-weight="700">Zoth Studio &amp; ZothOS v3.4</text>
+    <text x="762" y="78" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5">127.0.0.1:8108 · 8 Stdio MCP Tools</text>
   </g>
 
-  <text x="600" y="298" text-anchor="middle" fill="#64748B" font-family="JetBrains Mono, monospace" font-size="10.5">
-    ENGINEERED BY 1NC0GN30 • NULLAI (@1nc0gn30)  •  NULLAI PLATFORM  •  ZOTH.NULLAI.TECH
+  <text x="600" y="298" text-anchor="middle" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5">
+    ENGINEERED BY NEAL FRAZIER TECH (@1nc0gn30) • NULLAI PLATFORM • ZOTH.NULLAI.TECH
   </text>
 </svg>

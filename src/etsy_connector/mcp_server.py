@@ -1,27 +1,26 @@
 """Model Context Protocol (MCP) Server for Etsy Connector.
 
-Exposes Etsy operations, SEO audits, and Print-on-Demand bridges directly
-to Antigravity AI agents via standard JSON-RPC 2.0 over stdio.
-Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
+Exposes Etsy operations, 13-tag SEO audits, 0%/12%/15% profit calculations,
+and Printify / Gelato Print-on-Demand bridges via JSON-RPC 2.0 over stdio.
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
 100% Python Standard Library — Zero External Dependencies.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import platform
 import sys
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from . import __version__
 from .client import EtsyClient
-from .pod_bridge import generate_printify_product_payload, get_available_blueprints
-from .seo_engine import audit_listing, audit_tags, audit_title, calculate_profit
+from .pod_bridge import generate_pod_payload
+from .seo_engine import audit_listing, calculate_profit
 from .taxonomy import find_taxonomy, get_taxonomy_categories
 
 SERVER_NAME = "etsy-connector"
-SERVER_VERSION = "0.1.0"
+SERVER_VERSION = __version__
 MCP_PROTOCOL_VERSION = "2024-11-05"
 
 MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
@@ -33,7 +32,7 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
             "properties": {
                 "keywords": {
                     "type": "string",
-                    "description": "Keywords to search on Etsy (e.g. 'grandma garden sweatshirt' or 'wildflower mug').",
+                    "description": "Keywords to search on Etsy (e.g. 'wildflower sweatshirt' or 'ceramic coffee mug').",
                 },
                 "limit": {
                     "type": "integer",
@@ -78,7 +77,7 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
     },
     {
         "name": "etsy_calculate_profit_margins",
-        "description": "Calculate exact Etsy fees (listing, transaction, payment processing, offsite ads), POD production costs, net profit, and profit margin %.",
+        "description": "Calculate exact Etsy fees ($0.20 listing, 6.5% transaction, 3%+$0.25 processing, 0%/12%/15% Offsite Ads), POD costs, net profit, margin %, ROI, and break-even price.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -102,8 +101,13 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
                 },
                 "is_offsite_ads": {
                     "type": "boolean",
-                    "description": "Set to true to calculate 15% Etsy Offsite Ads fee (default: false).",
+                    "description": "Legacy boolean shortcut for 15% Etsy Offsite Ads fee (default: false).",
                     "default": False,
+                },
+                "offsite_ads_rate": {
+                    "type": "number",
+                    "enum": [0, 0.12, 0.15],
+                    "description": "Etsy Offsite Ads rate: 0 (organic), 0.12 (>= $10,000/yr shops), or 0.15 (< $10,000/yr shops).",
                 },
             },
             "required": ["retail_price", "pod_base_cost"],
@@ -124,7 +128,7 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
     },
     {
         "name": "etsy_create_draft_listing",
-        "description": "Create a new draft listing on Etsy with complete title, description, price, 13 tags, and taxonomy ID. With live credentials this is a dry run unless confirm=true.",
+        "description": "Create a new draft listing on Etsy with title, description, price, 13 tags, and taxonomy ID. With live credentials this is a dry run unless confirm=true.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -155,13 +159,40 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
                     "description": "Inventory stock quantity (default: 999 for POD).",
                     "default": 999,
                 },
+                "listing_type": {
+                    "type": "string",
+                    "enum": ["physical", "download", "both"],
+                    "description": "Etsy listing fulfillment type (default: 'download').",
+                    "default": "download",
+                },
+                "who_made": {
+                    "type": "string",
+                    "enum": ["i_did", "someone_else", "collective"],
+                    "description": "Etsy who_made declaration (default: 'i_did').",
+                    "default": "i_did",
+                },
+                "when_made": {
+                    "type": "string",
+                    "description": "Etsy when_made period (default: '2020_2026').",
+                    "default": "2020_2026",
+                },
+                "is_supply": {
+                    "type": "boolean",
+                    "description": "Whether the listing is a craft supply (default: false).",
+                    "default": False,
+                },
+                "confirm": {
+                    "type": "boolean",
+                    "description": "Must be true to execute a live POST against Etsy Open API v3 (defaults to safe dry-run).",
+                    "default": False,
+                },
             },
             "required": ["title", "description", "price", "tags"],
         },
     },
     {
         "name": "etsy_upload_listing_image",
-        "description": "Upload a mockup image or design file to an Etsy listing.",
+        "description": "Upload a mockup image or design file to an Etsy listing. With live credentials this is a dry run unless confirm=true.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -171,12 +202,21 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
                 },
                 "image_path": {
                     "type": "string",
-                    "description": "Absolute file path to the PNG/JPG mockup image on disk.",
+                    "description": "File path to the PNG/JPG/WebP mockup image on disk.",
                 },
                 "rank": {
                     "type": "integer",
                     "description": "Display order rank of the image (1 to 10).",
                     "default": 1,
+                },
+                "alt_text": {
+                    "type": "string",
+                    "description": "Optional descriptive alt text for accessibility (max 250 chars).",
+                },
+                "confirm": {
+                    "type": "boolean",
+                    "description": "Must be true to execute a live multipart upload against Etsy Open API v3 (defaults to safe dry-run).",
+                    "default": False,
                 },
             },
             "required": ["listing_id", "image_path"],
@@ -190,20 +230,26 @@ MCP_TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
             "properties": {
                 "shop_id": {
                     "type": "string",
-                    "description": "Optional shop ID or shop name (defaults to configured shop).",
+                    "description": "Optional shop ID or shop name (defaults to configured shop or 'me').",
                 }
             },
         },
     },
     {
         "name": "etsy_generate_pod_payload",
-        "description": "Generate a Printify / Gelato Print-on-Demand product creation payload linked to Etsy for automated fulfillment.",
+        "description": "Generate a Printify or Gelato Print-on-Demand product creation payload linked to Etsy for fulfillment.",
         "inputSchema": {
             "type": "object",
             "properties": {
+                "provider": {
+                    "type": "string",
+                    "enum": ["printify", "gelato"],
+                    "description": "Target POD fulfillment provider ('printify' or 'gelato', default: 'printify').",
+                    "default": "printify",
+                },
                 "blueprint_key": {
                     "type": "string",
-                    "description": "Blueprint identifier ('comfort_colors_1717', 'gildan_18000', 'ceramic_mug_15oz', 'canvas_tote_heavy', 'digital_wall_art_pack').",
+                    "description": "Blueprint identifier ('comfort_colors_1717', 'gildan_18000', 'ceramic_mug_15oz', 'canvas_tote_heavy', 'fine_art_poster_18x24', 'digital_wall_art_pack').",
                 },
                 "title": {
                     "type": "string",
@@ -262,7 +308,15 @@ class EtsyMcpServer:
             ship_chg = float(arguments.get("shipping_charged", 0.0))
             ship_cost = float(arguments.get("shipping_cost", 0.0))
             ads = bool(arguments.get("is_offsite_ads", False))
-            return calculate_profit(retail, pod, ship_chg, ship_cost, ads)
+            ads_rate = arguments.get("offsite_ads_rate")
+            return calculate_profit(
+                retail,
+                pod,
+                ship_chg,
+                ship_cost,
+                is_offsite_ads=ads,
+                offsite_ads_rate=float(ads_rate) if ads_rate is not None else None,
+            )
 
         elif name == "etsy_get_taxonomy_categories":
             q = arguments.get("query")
@@ -285,6 +339,10 @@ class EtsyMcpServer:
                 quantity=qty,
                 tags=tags,
                 taxonomy_id=tax_id,
+                who_made=str(arguments.get("who_made", "i_did")),
+                when_made=str(arguments.get("when_made", "2020_2026")),
+                is_supply=bool(arguments.get("is_supply", False)),
+                listing_type=str(arguments.get("listing_type", "download")),
                 confirm=bool(arguments.get("confirm", False)),
             )
 
@@ -292,7 +350,15 @@ class EtsyMcpServer:
             lid = str(arguments.get("listing_id", ""))
             ipath = str(arguments.get("image_path", ""))
             rank = int(arguments.get("rank", 1))
-            return self.client.upload_listing_image(listing_id=lid, image_path=ipath, rank=rank)
+            alt_text = arguments.get("alt_text")
+            confirm = bool(arguments.get("confirm", False))
+            return self.client.upload_listing_image(
+                listing_id=lid,
+                image_path=ipath,
+                rank=rank,
+                alt_text=alt_text,
+                confirm=confirm,
+            )
 
         elif name == "etsy_get_shop_details":
             sid = arguments.get("shop_id")
@@ -300,18 +366,20 @@ class EtsyMcpServer:
 
         elif name == "etsy_generate_pod_payload":
             bp = arguments.get("blueprint_key", "comfort_colors_1717")
+            provider = str(arguments.get("provider", "printify"))
             title = arguments.get("title", "")
             desc = arguments.get("description", "")
             tags = arguments.get("tags", [])
             img = arguments.get("design_image_url", "")
             price = arguments.get("retail_price_usd")
-            return generate_printify_product_payload(
+            return generate_pod_payload(
                 blueprint_key=bp,
                 title=title,
                 description=desc,
                 tags=tags,
                 design_image_url=img,
-                retail_price_usd=price,
+                retail_price_usd=float(price) if price is not None else None,
+                provider=provider,
             )
 
         raise KeyError(f"Unknown MCP tool: '{name}'")

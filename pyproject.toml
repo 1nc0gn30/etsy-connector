@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "etsy-connector"
-version = "0.1.0"
-description = "Etsy Open API v3 and Print-on-Demand MCP Connector for Antigravity AI Agents"
-authors = [{ name = "1nc0gn30", email = "hello@nullai.tech" }]
+version = "2.6.0"
+description = "Etsy Open API v3, 13-Tag SEO Auditor, 0%/12%/15% Fee Engine, and Printify/Gelato POD MCP Connector"
+authors = [{ name = "Neal Frazier Tech (@1nc0gn30)", email = "hello@nullai.tech" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.10"

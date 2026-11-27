@@ -1,60 +1,181 @@
 #!/usr/bin/env python3
-"""⚡ Etsy Connector — Sovereign Unicode U+2800 Braille TUI & Benchmark Harness
-Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform
-Paired Uncommon-Web Library: Canvas UI (canvasui-html-effects)
+"""Etsy Connector — Unicode U+2800 Braille TUI & Live Telemetry Monitor (v2.6.0)
+
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
+100% Python Standard Library — Zero External Dependencies.
 """
-import argparse, json, math, os, sys, time
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import time
+import urllib.request
+from pathlib import Path
+from typing import Any, Dict, List
 
 BRAILLE_BASE = 0x2800
-METRICS = ["AST/Engine Latency (ms)", "Throughput (ops/s)", "Memory Footprint (MB)", "Zero-Trust Audit Status"]
-SUMMARY = "Sovereign Etsy Connector engine with deterministic local execution and real-time telemetry."
-UW_SLUG = "canvasui-html-effects"
-UW_INSTALL = "npx shadcn@latest add https://canvasui.dev/r/liquid-react.json https://canvasui.dev/r/shatter-react.json https://canvasui.dev/r/peel-react.json https://canvasui.dev/r/ripple-react.json https://canvasui.dev/r/cloth-react.json https://canvasui.dev/r/vhs-react.json"
+VERSION = "2.6.0"
+DEFAULT_PORT = 8108
 
-def braille_sparkline(vals):
-    out = []
-    for i in range(0, len(vals) - 1, 2):
-        v1 = max(0, min(3, int(vals[i] * 3.99)))
-        v2 = max(0, min(3, int(vals[i+1] * 3.99)))
-        dots1 = (0x40, 0x04, 0x02, 0x01)[v1]
-        dots2 = (0x80, 0x20, 0x10, 0x08)[v2]
+
+def _resolve_src() -> None:
+    candidates = []
+    env_repo = os.environ.get("ZOTH_REPO_DIR", "").strip()
+    if env_repo:
+        candidates.append(Path(env_repo))
+    candidates.append(Path(__file__).resolve().parent.parent)
+    candidates.append(Path("/opt/etsy-connector"))
+    candidates.append(Path.home() / "NullAITech" / "etsy-connector")
+    for cand in candidates:
+        src = cand / "src"
+        if (src / "etsy_connector" / "__init__.py").is_file():
+            if str(src) not in sys.path:
+                sys.path.insert(0, str(src))
+            return
+
+
+def braille_bar(values: List[float]) -> str:
+    """Encode real normalized [0.0..1.0] measurements into a Unicode U+2800 Braille strip."""
+    if not values:
+        return chr(BRAILLE_BASE)
+    padded = list(values) + ([values[-1]] if len(values) % 2 == 1 else [])
+    out: List[str] = []
+    for i in range(0, len(padded), 2):
+        v1 = max(0, min(3, int(round(padded[i] * 3))))
+        v2 = max(0, min(3, int(round(padded[i + 1] * 3))))
+        dots1 = (0x40, 0x44, 0x46, 0x47)[v1]
+        dots2 = (0x80, 0xA0, 0xB0, 0xB8)[v2]
         out.append(chr(BRAILLE_BASE | dots1 | dots2))
     return "".join(out)
 
-def main():
-    ap = argparse.ArgumentParser(description="Etsy Connector Sovereign TUI & Benchmark")
-    ap.add_argument("--json", action="store_true", help="Output JSON telemetry and exit")
-    ap.add_argument("--benchmark", action="store_true", help="Run deterministic latency benchmark")
-    ap.add_argument("--frames", type=int, default=18, help="TUI frames to render")
-    args = ap.parse_args()
+
+def _probe_loopback(port: int) -> Dict[str, Any]:
+    url = f"http://127.0.0.1:{port}/health"
+    t0 = time.perf_counter()
+    try:
+        with urllib.request.urlopen(url, timeout=0.6) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+            return {"online": True, "latency_ms": latency_ms, "health": data}
+    except Exception:
+        return {"online": False, "latency_ms": None, "health": None}
+
+
+def collect_telemetry(port: int = DEFAULT_PORT) -> Dict[str, Any]:
+    """Collect real live :8108 health plus local SEO, 0%/12%/15% margin, and Printify/Gelato POD checks."""
+    _resolve_src()
+    from etsy_connector.mcp_server import MCP_TOOLS_DEFINITIONS
+    from etsy_connector.pod_bridge import get_all_provider_catalogs
+    from etsy_connector.seo_engine import audit_listing, calculate_profit
+    from etsy_connector.taxonomy import get_taxonomy_categories
 
     t0 = time.perf_counter()
-    samples = [0.5 + 0.45 * math.sin(i * 0.35) for i in range(48)]
-    elapsed_ms = round((time.perf_counter() - t0) * 1000.0 + 0.42, 3)
+    probe = _probe_loopback(port)
 
+    sample_audit = audit_listing(
+        title="Botanical Wildflower Heavy Blend Crewneck Sweatshirt, Cottagecore Floral Gift, Garment Dyed Pullover",
+        tags=[
+            "wildflower crewneck", "botanical sweatshirt", "cottagecore gift", "floral pullover",
+            "garden lover gift", "nature crewneck", "cozy floral shirt", "spring botanical",
+            "pressed flower art", "embroidered look", "comfort colors 1717", "gift for gardener",
+            "aesthetic sweater",
+        ],
+        description="Heavyweight unisex crewneck sweatshirt printed with archival botanical wildflower artwork. Includes sizing guide, washing care instructions, and gift-ready fulfillment.",
+    )
+    profit_0 = calculate_profit(38.99, 15.50, offsite_ads_rate=0.0)
+    profit_12 = calculate_profit(38.99, 15.50, offsite_ads_rate=0.12)
+    profit_15 = calculate_profit(38.99, 15.50, offsite_ads_rate=0.15)
+    catalogs = get_all_provider_catalogs()
+    tax_count = len(get_taxonomy_categories())
+    eval_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+
+    # Real normalized telemetry vector for Unicode Braille sparkline
+    norm_metrics = [
+        sample_audit["overall_score"] / 100.0,
+        min(1.0, max(0.0, profit_0["net_margin_pct"] / 100.0)),
+        min(1.0, max(0.0, profit_12["net_margin_pct"] / 100.0)),
+        min(1.0, max(0.0, profit_15["net_margin_pct"] / 100.0)),
+        min(1.0, len(MCP_TOOLS_DEFINITIONS) / 8.0),
+        min(1.0, len(catalogs["printify"]) / 6.0),
+        min(1.0, len(catalogs["gelato"]) / 6.0),
+        min(1.0, tax_count / 8.0),
+        1.0 if probe["online"] else 0.25,
+        1.0 if sample_audit["is_ready_to_publish"] else 0.0,
+    ]
+
+    return {
+        "tool": "etsy-connector",
+        "title": "Etsy Connector",
+        "version": VERSION,
+        "ok": True,
+        "architect": "Neal Frazier Tech (@1nc0gn30) • NullAI Platform",
+        "local_port": port,
+        "daemon_online": probe["online"],
+        "daemon_latency_ms": probe["latency_ms"],
+        "engine_eval_ms": eval_ms,
+        "mcp_tools": len(MCP_TOOLS_DEFINITIONS),
+        "taxonomy_categories": tax_count,
+        "pod_catalogs": {
+            "printify": len(catalogs["printify"]),
+            "gelato": len(catalogs["gelato"]),
+        },
+        "seo_benchmark": {
+            "score": sample_audit["overall_score"],
+            "grade": sample_audit["grade"],
+            "ready": sample_audit["is_ready_to_publish"],
+        },
+        "margin_tiers": {
+            "organic_0pct": {"net_profit": profit_0["net_profit"], "margin_pct": profit_0["net_margin_pct"], "break_even": profit_0["break_even_price"]},
+            "offsite_12pct": {"net_profit": profit_12["net_profit"], "margin_pct": profit_12["net_margin_pct"], "break_even": profit_12["break_even_price"]},
+            "offsite_15pct": {"net_profit": profit_15["net_profit"], "margin_pct": profit_15["net_margin_pct"], "break_even": profit_15["break_even_price"]},
+        },
+        "braille_meter": braille_bar(norm_metrics),
+    }
+
+
+def render_tui(data: Dict[str, Any]) -> None:
+    state = f"ONLINE ({data['daemon_latency_ms']} ms)" if data["daemon_online"] else "IDLE (on-demand :8108)"
+    print("\033[1;33m╭────────────────────────────────────────────────────────────────────────────╮\033[0m")
+    print(f"\033[1;33m│\033[0m \033[1;37mEtsy Connector v{data['version']:<6}\033[0m │ \033[36mNeal Frazier Tech (@1nc0gn30) • NullAI\033[0m       \033[1;33m│\033[0m")
+    print("\033[1;33m├────────────────────────────────────────────────────────────────────────────┤\033[0m")
+    print(f"\033[1;33m│\033[0m Loopback :8108 : \033[32m{state:<26}\033[0m Engine Eval: \033[33m{data['engine_eval_ms']:>6.2f} ms\033[0m       \033[1;33m│\033[0m")
+    print(f"\033[1;33m│\033[0m MCP & Catalogs : \033[37m{data['mcp_tools']} MCP tools · {data['pod_catalogs']['printify']} Printify · {data['pod_catalogs']['gelato']} Gelato · {data['taxonomy_categories']} Taxon\033[0m \033[1;33m│\033[0m")
+    m0 = data["margin_tiers"]["organic_0pct"]
+    m12 = data["margin_tiers"]["offsite_12pct"]
+    m15 = data["margin_tiers"]["offsite_15pct"]
+    print(f"\033[1;33m│\033[0m SEO Audit Gate : \033[32m{data['seo_benchmark']['score']}/100 ({data['seo_benchmark']['grade']})\033[0m   Braille Meter: \033[33m{data['braille_meter']}\033[0m                  \033[1;33m│\033[0m")
+    print(f"\033[1;33m│\033[0m Margin 0% Ads  : \033[32m${m0['net_profit']:>5.2f} ({m0['margin_pct']:>4.1f}%)\033[0m  Break-Even: ${m0['break_even']:>5.2f}                  \033[1;33m│\033[0m")
+    print(f"\033[1;33m│\033[0m Margin 12% Ads : \033[33m${m12['net_profit']:>5.2f} ({m12['margin_pct']:>4.1f}%)\033[0m  Break-Even: ${m12['break_even']:>5.2f}                  \033[1;33m│\033[0m")
+    print(f"\033[1;33m│\033[0m Margin 15% Ads : \033[33m${m15['net_profit']:>5.2f} ({m15['margin_pct']:>4.1f}%)\033[0m  Break-Even: ${m15['break_even']:>5.2f}                  \033[1;33m│\033[0m")
+    print("\033[1;33m╰────────────────────────────────────────────────────────────────────────────╯\033[0m")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=f"Etsy Connector Unicode Braille TUI (v{VERSION})")
+    ap.add_argument("--port", type=int, default=DEFAULT_PORT, help="Loopback cockpit port (default: 8108)")
+    ap.add_argument("--once", action="store_true", help="Render a single telemetry frame and exit")
+    ap.add_argument("--status", action="store_true", help="Print compact status summary and exit")
+    ap.add_argument("--json", action="store_true", help="Output JSON telemetry and exit")
+    args, _ = ap.parse_known_args()
+
+    data = collect_telemetry(port=args.port)
     if args.json:
-        print(json.dumps({
-            "tool": "etsy-connector",
-            "title": "Etsy Connector",
-            "architect": "1nc0gn30 (@1nc0gn30) • NullAI Platform",
-            "summary": SUMMARY,
-            "uncommon_web": {"slug": UW_SLUG, "install": UW_INSTALL},
-            "audio_lufs": -14.0,
-            "benchmark_ms": elapsed_ms,
-            "metrics": METRICS,
-            "braille_signature": braille_sparkline(samples),
-        }, indent=2))
-        return
+        print(json.dumps(data, indent=2, sort_keys=True))
+        return 0
+    if args.status:
+        state = "ONLINE" if data["daemon_online"] else "IDLE"
+        print(
+            f"etsy-connector-tui v{VERSION} · :{args.port} {state} · "
+            f"seo={data['seo_benchmark']['score']}/100 · mcp={data['mcp_tools']} · "
+            f"pod={data['pod_catalogs']['printify']}p/{data['pod_catalogs']['gelato']}g · {data['braille_meter']}"
+        )
+        return 0
+    render_tui(data)
+    return 0
 
-    print("\033[1;33m╭──────────────────────────────────────────────────────────────────────────╮\033[0m")
-    print(f"\033[1;33m│\033[0m ⚡ \033[1;37mEtsy Connector                  \033[0m │ \033[36m1nc0gn30 • NullAI Platform\033[0m         \033[1;33m│\033[0m")
-    print("\033[1;33m├──────────────────────────────────────────────────────────────────────────┤\033[0m")
-    print(f"\033[1;33m│\033[0m {SUMMARY[:72]:<72} \033[1;33m│\033[0m")
-    print(f"\033[1;33m│\033[0m Uncommon-Web: \033[32m{UW_SLUG:<24}\033[0m Audio: \033[35m-14.0 LUFS Mastered\033[0m   \033[1;33m│\033[0m")
-    for idx, m in enumerate(METRICS[:4]):
-        wave = braille_sparkline([0.5 + 0.45 * math.sin((i + idx * 3) * 0.4) for i in range(40)])
-        print(f"\033[1;33m│\033[0m  • {m[:24]:<24} \033[33m{wave}\033[0m  PASS   \033[1;33m│\033[0m")
-    print("\033[1;33m╰──────────────────────────────────────────────────────────────────────────╯\033[0m")
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

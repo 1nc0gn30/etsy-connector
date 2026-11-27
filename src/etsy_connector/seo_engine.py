@@ -1,13 +1,14 @@
 """Etsy SEO Algorithm Auditor & Financial Profitability Engine.
 
-Engineered by 1nc0gn30 (@1nc0gn30) • NullAI Platform.
+Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform.
 100% Python Standard Library — Zero External Dependencies.
 """
 
 from __future__ import annotations
 
+import math
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 
 def audit_title(title: str) -> Dict[str, Any]:
@@ -27,6 +28,7 @@ def audit_title(title: str) -> Dict[str, Any]:
             "valid": False,
             "char_length": 0,
             "word_count": 0,
+            "first_40_chars": "",
             "score": 0,
             "issues": ["Title cannot be empty"],
             "recommendations": ["Provide a descriptive title between 80 and 130 characters."],
@@ -40,9 +42,6 @@ def audit_title(title: str) -> Dict[str, Any]:
         score -= 25
         issues.append(f"Title is too short ({char_len}/140 chars). Missing critical keyword search real estate.")
         recommendations.append("Expand title to at least 70–120 characters with high-volume search phrases.")
-    elif char_len >= 80 and char_len <= 135:
-        # Ideal sweet spot
-        pass
 
     # Rule 2: Front-loading first 40 characters (Mobile & Search Weight)
     first_40 = clean_title[:40].strip()
@@ -67,7 +66,7 @@ def audit_title(title: str) -> Dict[str, Any]:
 
     score = max(0, min(100, score))
     return {
-        "valid": char_len <= 140 and char_len > 0,
+        "valid": 0 < char_len <= 140,
         "char_length": char_len,
         "word_count": word_count,
         "first_40_chars": first_40,
@@ -80,7 +79,7 @@ def audit_title(title: str) -> Dict[str, Any]:
 def audit_tags(tags: List[str]) -> Dict[str, Any]:
     """Audit 13 Etsy search tags against character limits, count, and long-tail performance."""
     raw_tags = tags or []
-    cleaned_tags = [t.strip().lower() for t in raw_tags if t and t.strip()]
+    cleaned_tags = [str(t).strip().lower() for t in raw_tags if t and str(t).strip()]
 
     issues: List[str] = []
     recommendations: List[str] = []
@@ -112,7 +111,7 @@ def audit_tags(tags: List[str]) -> Dict[str, Any]:
             issues.append(f"Tag '{tag}' is {t_len} characters (max allowed is 20).")
         elif t_len == 0:
             invalid_tags.append({"tag": tag, "length": 0, "error": "Empty tag"})
-        
+
         # Check uniqueness
         if tag in seen:
             score -= 10
@@ -131,7 +130,7 @@ def audit_tags(tags: List[str]) -> Dict[str, Any]:
 
     score = max(0, min(100, score))
     return {
-        "valid": len(invalid_tags) == 0 and tag_count <= 13 and tag_count > 0,
+        "valid": len(invalid_tags) == 0 and 0 < tag_count <= 13,
         "tag_count": tag_count,
         "tags": cleaned_tags,
         "invalid_tags": invalid_tags,
@@ -161,30 +160,52 @@ def audit_listing(title: str, tags: List[str], description: str = "") -> Dict[st
         desc_issues.append("Description is exceptionally long (>4000 chars).")
 
     # Check keyword overlap between title and tags
-    title_words = set(re.findall(r"\b[a-zA-Z]{3,}\b", title.lower()))
+    title_words = set(re.findall(r"\b[a-zA-Z]{3,}\b", (title or "").lower()))
     tag_words = set()
-    for tag in tags:
-        for w in re.findall(r"\b[a-zA-Z]{3,}\b", tag.lower()):
+    for tag in (tags or []):
+        for w in re.findall(r"\b[a-zA-Z]{3,}\b", str(tag).lower()):
             tag_words.add(w)
 
-    shared_keywords = list(title_words.intersection(tag_words))
+    shared_keywords = sorted(title_words.intersection(tag_words))
 
     # Overall weighted score
     overall_score = round(t_audit["score"] * 0.45 + tag_audit["score"] * 0.45 + desc_score * 0.10)
 
     grade = "A+" if overall_score >= 95 else ("A" if overall_score >= 88 else ("B" if overall_score >= 75 else ("C" if overall_score >= 60 else "F")))
+    ready = t_audit["valid"] and tag_audit["valid"] and overall_score >= 75
 
     return {
         "overall_score": overall_score,
         "grade": grade,
-        "is_ready_to_publish": t_audit["valid"] and tag_audit["valid"] and overall_score >= 75,
+        "is_ready_to_publish": ready,
         "title_audit": t_audit,
         "tags_audit": tag_audit,
         "description_length": desc_len,
+        "description_score": desc_score,
+        "description_issues": desc_issues,
+        "description_recommendations": desc_recommendations,
         "shared_keywords_count": len(shared_keywords),
         "shared_keywords": shared_keywords[:8],
-        "summary": f"SEO Score {overall_score}/100 (Grade {grade}). Ready to Publish: {t_audit['valid'] and tag_audit['valid'] and overall_score >= 75}",
+        "summary": f"SEO Score {overall_score}/100 (Grade {grade}). Ready to Publish: {ready}",
     }
+
+
+def _normalize_offsite_ads_rate(is_offsite_ads: bool, offsite_ads_rate: Optional[float]) -> float:
+    """Resolve Etsy Offsite Ads fee rate: 0.0, 0.12 (>= $10k/yr), or 0.15 (< $10k/yr)."""
+    if offsite_ads_rate is not None:
+        r = float(offsite_ads_rate)
+        if not math.isfinite(r):
+            raise ValueError("offsite_ads_rate must be a finite number")
+        if r > 1.0:
+            r = r / 100.0
+        if r <= 0.0:
+            return 0.0
+        if abs(r - 0.12) <= 0.005:
+            return 0.12
+        if abs(r - 0.15) <= 0.005:
+            return 0.15
+        raise ValueError("offsite_ads_rate must be 0, 0.12 (12%), or 0.15 (15%)")
+    return 0.15 if is_offsite_ads else 0.0
 
 
 def calculate_profit(
@@ -193,14 +214,19 @@ def calculate_profit(
     shipping_charged: float = 0.0,
     shipping_cost: float = 0.0,
     is_offsite_ads: bool = False,
+    offsite_ads_rate: Optional[float] = None,
 ) -> Dict[str, Any]:
-    """Calculate Etsy seller fees, POD costs, net profit, and profit margins."""
-    retail = max(0.0, float(retail_price))
-    pod_cost = max(0.0, float(pod_base_cost))
-    ship_charged = max(0.0, float(shipping_charged))
-    ship_cost = max(0.0, float(shipping_cost))
+    """Calculate exact Etsy seller fees, POD costs, net profit, margins, and break-even price.
 
-    gross_revenue = retail + ship_charged
+    Supports Etsy's 0%, 12% (>= $10,000/yr shops), and 15% (< $10,000/yr shops) Offsite Ads tiers.
+    """
+    retail = round(max(0.0, float(retail_price)), 2)
+    pod_cost = round(max(0.0, float(pod_base_cost)), 2)
+    ship_charged = round(max(0.0, float(shipping_charged)), 2)
+    ship_cost = round(max(0.0, float(shipping_cost)), 2)
+
+    ads_rate = _normalize_offsite_ads_rate(bool(is_offsite_ads), offsite_ads_rate)
+    gross_revenue = round(retail + ship_charged, 2)
 
     # 1. Listing Fee: $0.20 fixed
     listing_fee = 0.20
@@ -211,8 +237,8 @@ def calculate_profit(
     # 3. Payment Processing Fee (US rate: 3.0% + $0.25)
     payment_processing_fee = round(gross_revenue * 0.03 + 0.25, 2)
 
-    # 4. Offsite Ads Fee (15% if customer clicked an offsite Google/Facebook ad)
-    offsite_ads_fee = round(gross_revenue * 0.15, 2) if is_offsite_ads else 0.0
+    # 4. Offsite Ads Fee (0%, 12% for >= $10k/yr shops, or 15% for < $10k/yr shops)
+    offsite_ads_fee = round(gross_revenue * ads_rate, 2) if ads_rate > 0 else 0.0
 
     total_etsy_fees = round(listing_fee + transaction_fee + payment_processing_fee + offsite_ads_fee, 2)
     total_production_cost = round(pod_cost + ship_cost, 2)
@@ -222,6 +248,12 @@ def calculate_profit(
     net_margin_pct = round((net_profit / gross_revenue) * 100.0, 1) if gross_revenue > 0 else 0.0
     roi_pct = round((net_profit / total_production_cost) * 100.0, 1) if total_production_cost > 0 else 0.0
 
+    # Break-even retail price (gross_revenue * (1 - 0.065 - 0.03 - ads_rate) = pod + ship_cost + 0.20 + 0.25)
+    variable_rate = 0.065 + 0.03 + ads_rate
+    fixed_costs = total_production_cost + 0.45
+    min_gross = fixed_costs / (1.0 - variable_rate) if variable_rate < 1.0 else fixed_costs
+    break_even_price = round(max(0.0, min_gross - ship_charged), 2)
+
     return {
         "retail_price": retail,
         "shipping_charged": ship_charged,
@@ -229,6 +261,8 @@ def calculate_profit(
         "pod_base_cost": pod_cost,
         "shipping_cost": ship_cost,
         "total_production_cost": total_production_cost,
+        "offsite_ads_rate": ads_rate,
+        "offsite_ads_tier": "15% (<$10k/yr)" if ads_rate == 0.15 else ("12% (>=$10k/yr)" if ads_rate == 0.12 else "0% (Organic)"),
         "etsy_fees": {
             "listing_fee": listing_fee,
             "transaction_fee": transaction_fee,
@@ -240,5 +274,6 @@ def calculate_profit(
         "net_profit": net_profit,
         "net_margin_pct": net_margin_pct,
         "roi_pct": roi_pct,
+        "break_even_price": break_even_price,
         "profitable": net_profit > 0,
     }

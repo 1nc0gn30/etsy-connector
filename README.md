@@ -1,169 +1,109 @@
-<p align="center">
-  <img src="assets/hero-banner.svg" alt="Etsy Connector — Etsy Open API v3 Bridge, 13-Tag SEO Auditor, Fee/Margin Calculator & MCP Server" width="100%" />
-</p>
+# Etsy Connector (`v2.6.0`)
 
-# Etsy Connector
+![Etsy Connector Banner](./banner.png)
 
-**Zero-dependency Python 3.10+ Etsy Open API v3 client, OAuth 2.0 PKCE helper, 13-tag SEO rank auditor, seller fee and net profit calculator, Printify/Gelato POD payload generator, loopback cockpit, and 8-tool MCP server.**
+> **100% Free & Open Access** · Zero External Python Dependencies · Loopback `127.0.0.1:8108` REST API + Dual-Theme Web Cockpit + 8 JSON-RPC 2.0 Stdio MCP Tools
 
-- **Zoth Studio v2 Dossier**: [https://zoth.nullai.tech/tools/etsy-connector](https://zoth.nullai.tech/tools/etsy-connector)
-- **Default Loopback Endpoint**: `http://127.0.0.1:8108`
-- **Runtime Dependencies**: Zero external Python runtime packages (100% Python `stdlib`)
-- **License**: MIT (100% free and open-source)
+Etsy Connector is a local-first Python standard-library server, CLI, Unicode Braille TUI, and Model Context Protocol (MCP) bridge for Etsy Open API v3 and Print-on-Demand (Printify & Gelato) seller operations.
 
 ---
 
-## Overview
+## What It Does
 
-`etsy-connector` bridges Etsy Open API v3 storefront operations with deterministic local auditing and print-on-demand payload synthesis:
-
-- **13-Tag & Title SEO Auditor**: Evaluates listing titles (`<=140` chars), search tags (`13` tags, `<=20` chars each, duplicate detection), and descriptions against Etsy search ranking constraints.
-- **Fee & Net Margin Calculator**: Computes `$0.20` listing fees, `6.5%` transaction fees, `3% + $0.25` payment processing, optional `15%` Offsite Ads fees, POD base/shipping costs, net profit, and ROI.
-- **Etsy Open API v3 & OAuth 2.0 PKCE**: Supports PKCE authorization code exchange, `0600` credential storage (`~/.etsy_connector_config.json`), competitor keyword search, shop profile updates, and dry-run-by-default draft listing creation (`confirm=true` required for live writes).
-- **8-Tool MCP Server**: Exposes stdio JSON-RPC 2.0 tools for AI agents alongside a loopback HTTP cockpit on `127.0.0.1:8108`.
+1. **13-Tag & 140-Char Etsy SEO Auditor** — Evaluates title length (140-char limit), mobile front-loading (first 40 chars), separator hygiene, all-caps penalties, 13-tag completeness, 20-char tag caps, duplicate tags, single-word ratios, description length, and title/tag keyword overlap.
+2. **Exact Etsy Fee, Offsite Ads & Break-Even Calculator** — Models `$0.20` listing fee, `6.5%` transaction fee, `3.0% + $0.25` US payment processing, and **`0%` / `12%` (`>= $10,000/yr`) / `15%` (`< $10,000/yr`)** Etsy Offsite Ads tiers, returning rounded gross revenue, net profit, net margin %, ROI %, and break-even retail price.
+3. **Printify & Gelato POD Payload Builders** — Generates Printify REST API v1 product payloads (accurate blueprint & provider IDs: `638/29`, `49/29`, `68/26`, `611/3`, `0/0`) and Gelato Ecommerce API v4 localized fulfillment payloads (`productUid`, regional routing).
+4. **Etsy Open API v3 Client + OAuth 2.0 PKCE S256** — Generates RFC 7636 PKCE verifiers/challenges, persists credentials atomically with `0600` permissions in `~/.etsy_connector_config.json`, URL-quotes path segments, detects upload MIME types, sanitizes `Content-Disposition` filenames, and enforces dry-run-by-default (`confirm=True` required for live draft creation, shop updates, and file/image uploads).
+5. **Hardened Loopback Workstation (`http://127.0.0.1:8108`)** — Dual-theme **Editorial Ivory Light** + **Obsidian Gold Dark** 5-tab UI with zero external CDN requests, strict loopback `Host` & exact-port `Origin` `403` enforcement, all 4 security headers, `HEAD` support, `1 MiB` `413` body cap, `400` strict JSON/type validation, and `403` traversal protection.
 
 ---
 
-## Architecture
+## How It Works
 
-```text
-src/etsy_connector/
-├── client.py          # Stdlib Etsy Open API v3 client, OAuth 2.0 PKCE & simulation fallback
-├── seo_engine.py      # 140-char title / 13-tag SEO rank auditor & Etsy fee/margin calculator
-├── taxonomy.py        # Seller taxonomy category lookup for POD and digital goods
-├── pod_bridge.py      # Printify / Gelato fulfillment payload builder for Etsy listings
-├── mcp_server.py      # JSON-RPC 2.0 stdio MCP server exposing 8 Etsy & POD tools
-├── web_cockpit.py     # Loopback HTTP API + browser cockpit (127.0.0.1:8108)
-└── cli.py             # Unified CLI entrypoint (`etsy-connector`)
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  ZothOS CLI / Braille TUI / Antigravity MCP Client (JSON-RPC 2.0 stdio) │
+└──────────────────────────┬───────────────────────────┬──────────────────┘
+                           │                           │
+            ┌──────────────▼──────────────┐  ┌─────────▼──────────────────┐
+            │  src/etsy_connector/        │  │  Loopback HTTP (:8108)     │
+            │  • seo_engine.py            │  │  • web_cockpit.py          │
+            │  • pod_bridge.py            │  │  • Dual-theme public/ UI   │
+            │  • client.py (PKCE + v3)    │  │  • Host/Origin 403 guards  │
+            │  • taxonomy.py (8 nodes)    │  │  • /api/{audit,profit,pod, │
+            │  • mcp_server.py (8 tools)  │  │    search,create-draft}    │
+            └─────────────────────────────┘  └────────────────────────────┘
 ```
 
 ---
 
-## Quickstart
+## ZothOS CLI & MCP Commands
 
+### Quickstart & Status
 ```bash
-git clone https://github.com/1nc0gn30/etsy-connector.git
-cd etsy-connector
-python3 -m pip install -e .
+# Check daemon, credential, and MCP status
+etsy-connector --status
 
-# Launch the loopback web cockpit on http://127.0.0.1:8108
+# Machine-readable manifest
+etsy-connector --json
+
+# Launch hardened loopback workstation on 127.0.0.1:8108
 python3 server.py --host 127.0.0.1 --port 8108
+# or via CLI:
+etsy-connector serve --port 8108
+
+# Launch Unicode U+2800 Braille live telemetry TUI
+etsy-connector-tui --once
+etsy-connector-tui --once --json
 ```
 
-Or run via the CLI entrypoint:
-
+### Core CLI Subcommands
 ```bash
-etsy-connector serve --host 127.0.0.1 --port 8108
-```
-
----
-
-## CLI & MCP Usage
-
-### CLI Subcommands
-
-```bash
-# View CLI help
-etsy-connector --help
-
-# Audit a listing title and 13 search tags
+# 1. Audit listing title and 13 search tags
 etsy-connector audit \
-  --title "Grandma Garden Sweatshirt, Custom Wildflower Crewneck, Personalized Gift" \
-  --tags "grandma sweatshirt,wildflower sweater,grandmas garden,custom crewneck,mom birthday gift,botanical shirt,plant lover gift,gift for grandma,grandkids names,mothers day gift,comfort colors tee,floral pullover,family tree shirt" \
+  --title "Botanical Wildflower Heavy Blend Crewneck Sweatshirt, Cottagecore Floral Gift, Garment Dyed Pullover" \
+  --tags "wildflower crewneck,botanical sweatshirt,cottagecore gift,floral pullover,garden lover gift,nature crewneck,cozy floral shirt,spring botanical,pressed flower art,embroidered look,comfort colors 1717,gift for gardener,aesthetic sweater" \
   --json
 
-# Calculate Etsy seller fees, POD base cost, and net profit margin
-etsy-connector profit --retail 34.99 --pod 12.80 --ads --json
+# 2. Calculate Etsy fees & break-even across 0%, 12%, or 15% Offsite Ads
+etsy-connector profit --retail 38.99 --pod 15.50 --json
+etsy-connector profit --retail 38.99 --pod 15.50 --offsite-ads-rate 0.12 --json
+etsy-connector profit --retail 38.99 --pod 15.50 --ads --json
 
-# Search active Etsy marketplace listings (uses deterministic simulation if unconfigured)
+# 3. Generate Printify or Gelato POD fulfillment payloads
+etsy-connector pod --provider printify --blueprint ceramic_mug_15oz --title "Songbird Ceramic Mug 15oz"
+etsy-connector pod --provider gelato --blueprint fine_art_poster_18x24 --title "Botanical Archival Poster"
+
+# 4. Competitor search & OAuth 2.0 PKCE S256
 etsy-connector search --keywords "wildflower sweatshirt" --limit 5 --json
-
-# Configure API credentials or run OAuth 2.0 PKCE authorization
-etsy-connector config --key "<ETSY_KEYSTRING>" --shop "<SHOP_ID>"
-etsy-connector auth --key "<ETSY_KEYSTRING>"
-
-# Create a draft digital listing (dry-run unless --confirm is passed)
-etsy-connector draft-digital --title "Printable Wall Art" --desc "300 DPI PDF" --price 6.99 --tags "wall art,printable pdf"
-
-# Launch the stdio MCP server
-etsy-connector mcp
+etsy-connector auth --key YOUR_ETSY_API_KEYSTRING
 ```
 
-### ZothOS v3.4.0 CLI Integration
+### 8 Model Context Protocol (MCP) Stdio Tools
+Start the stdio MCP server with `etsy-connector mcp` or `PYTHONPATH=src python3 -m etsy_connector.cli mcp`:
 
-On ZothOS v3.4.0 workstations, `etsy-connector` and `etsy-connector-tui` are installed in `/usr/local/bin/`:
-
-```bash
-etsy-connector profit --retail 34.99 --pod 12.80 --json
-etsy-connector-tui --json
-etsy-connector serve --port 8108
-```
-
-### Model Context Protocol (MCP) Tools
-
-```json
-{
-  "mcpServers": {
-    "etsy-connector": {
-      "command": "etsy-connector",
-      "args": ["mcp"]
-    }
-  }
-}
-```
-
-| MCP Tool | Description |
+| MCP Tool | Purpose |
 | :--- | :--- |
-| `etsy_search_listings` | Search active Etsy listings for competitor pricing and keyword research |
-| `etsy_audit_listing_seo` | Audit title (`<=140` chars), 13 tags (`<=20` chars), and description |
-| `etsy_calculate_profit_margins` | Compute Etsy listing/transaction/processing/offsite-ad fees and net margin |
-| `etsy_get_taxonomy_categories` | Look up Etsy seller taxonomy IDs and keyword mappings |
-| `etsy_create_draft_listing` | Create a draft Etsy listing (dry-run unless `confirm=true`) |
-| `etsy_upload_listing_image` | Attach a mockup or artwork image to an Etsy listing |
-| `etsy_get_shop_details` | Retrieve shop profile, active listing count, and review score |
-| `etsy_generate_pod_payload` | Build a Printify/Gelato fulfillment payload linked to an Etsy blueprint |
+| `etsy_search_listings` | Search active Etsy marketplace listings (falls back cleanly to simulation offline) |
+| `etsy_audit_listing_seo` | Audit title (<=140c), 13 tags (<=20c), duplicates, single-word ratio, and description |
+| `etsy_calculate_profit_margins` | Compute `$0.20` listing, `6.5%` tx, `3%+$0.25` processing, `0%/12%/15%` Offsite Ads, and break-even |
+| `etsy_get_taxonomy_categories` | Look up canonical Etsy seller category taxonomy IDs (8 POD & digital nodes) |
+| `etsy_create_draft_listing` | Create draft listing (`confirm=true` required for live writes; dry-run by default) |
+| `etsy_upload_listing_image` | Upload mockup PNG/JPG/WebP (`confirm=true` required for live writes; dry-run by default) |
+| `etsy_get_shop_details` | Fetch shop profile, active listing counts, and review metrics |
+| `etsy_generate_pod_payload` | Build Printify REST API v1 or Gelato Ecommerce API v4 fulfillment payloads |
 
 ---
 
-## HTTP API Reference
-
-When running on `http://127.0.0.1:8108`:
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health`, `/api/health` | Service health status, port, configuration state, and uptime |
-| `GET` | `/api/stats` | Audit, profit calculation, search, and POD payload counters |
-| `GET` | `/api/taxonomy` | Supported Etsy seller taxonomy categories |
-| `GET` | `/api/blueprints` | POD product blueprints and print specifications |
-| `GET` | `/api/mcp/tools` | Registered MCP tool schemas |
-| `POST` | `/api/audit` | Run 13-tag and title SEO audit |
-| `POST` | `/api/profit` | Run Etsy fee and POD margin breakdown |
-| `POST` | `/api/search` | Search Etsy marketplace listings |
-| `POST` | `/api/pod` | Generate Printify/Gelato product creation JSON payload |
-| `POST` | `/api/create-draft` | Create draft Etsy listing (dry-run unless `confirm=true`) |
-| `POST` | `/api/credentials` | Save Etsy API key, OAuth token, and shop ID (`0600` permissions) |
-
----
-
-## Testing & Verification
-
+## Testing
 ```bash
-# Run the pytest suite
-PYTHONPATH=src python3 -m pytest -q
-
-# Scan repository with gitleaks
-gitleaks detect --source . --no-banner --redact
+PYTHONPATH=src pytest -q tests
 ```
 
 ---
 
-## Support
+## License & Support
 
-Etsy Connector is 100% free, open-access, and unlocked software with zero paywalls. Optional community support is available via:
-
-- **Stripe**: [☕ Buy Us a Coffee](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)
-- **Solana Tip**: `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK` (`solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`)
-
-## License
-
-MIT License — Engineered by Neal Frazier Tech ([`@1nc0gn30`](https://github.com/1nc0gn30)) • [NullAI Platform](https://nullai.tech). See [LICENSE](LICENSE) for full text.
+- MIT License — 100% Free & Open Access.
+- Optional support: [Buy Us a Coffee (Stripe)](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X) · Solana Tip: `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`
+- **Engineered by Neal Frazier Tech (@1nc0gn30) • NullAI Platform** · [GitHub](https://github.com/1nc0gn30/etsy-connector) · [NullAI](https://nullai.tech)
